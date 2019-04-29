@@ -37,6 +37,69 @@ LibEvent::LibEventInstance LibEvent::getInstance() {
     return LibEventInstance(std::move(libevent));
 }
 
+static std::string deleteFromBeginUri(const std::string &uri, const std::string &deletedString) {
+    if (uri.substr(0, deletedString.size()) == deletedString) {
+        return uri.substr(deletedString.size());
+    } else {
+        return uri;
+    }
+}
+
+static std::string deleteHttpShemeFromUri(const std::string &uri) {
+    const std::string HTTP_SHEME("http://");
+    return deleteFromBeginUri(uri, HTTP_SHEME);
+}
+
+std::string getDomainFromUri(const std::string &uri) {
+    const std::string &uriWithoutSheme = deleteHttpShemeFromUri(uri);
+    const size_t dotsPos = uriWithoutSheme.find(":");
+    if (dotsPos != uriWithoutSheme.npos) {
+        return uriWithoutSheme.substr(0, dotsPos);
+    } else {
+        const size_t slashPos = uriWithoutSheme.find("/");
+        if (slashPos != uriWithoutSheme.npos) {
+            return uriWithoutSheme.substr(0, slashPos);
+        } else {
+            return uriWithoutSheme;
+        }
+    }
+}
+
+std::string getPortFromUri(const std::string &uri) {
+    const std::string &uriWithoutSheme = deleteHttpShemeFromUri(uri);
+    const std::string &domain = getDomainFromUri(uri);
+    const std::string &uriWithoutDomain = deleteFromBeginUri(uriWithoutSheme, domain);
+    
+    if (uriWithoutDomain.empty()) {
+        return "";
+    }
+    if (uriWithoutDomain[0] != ':') {
+        return "";
+    }
+    size_t slashPos = uriWithoutDomain.find("/");
+    if (slashPos == uriWithoutDomain.npos) {
+        slashPos = uriWithoutDomain.size();
+    }
+    return uriWithoutDomain.substr(1, slashPos - 1);
+}
+
+std::string getPathFromUri(const std::string &uri) {
+    const std::string &uriWithoutSheme = deleteHttpShemeFromUri(uri);
+    const std::string &domain = getDomainFromUri(uri);
+    const std::string &uriWithoutDomain = deleteFromBeginUri(uriWithoutSheme, domain);
+    const std::string &port = getPortFromUri(uri);
+    std::string uriWithoutPort = uriWithoutDomain;
+    if (!port.empty()) {
+        uriWithoutPort = deleteFromBeginUri(uriWithoutDomain, ":" + port);
+    }
+    
+    if (uriWithoutPort.empty()) {
+        return "/";
+    } else {
+        return uriWithoutPort;
+    }
+}
+
 std::string LibEvent::request(const LibEvent::LibEventInstance& instance, const std::string& url, const std::string& postData, size_t timeoutSec) {
     CHECK(isInitialized.load(), "not initialized");
     
@@ -46,20 +109,14 @@ std::string LibEvent::request(const LibEvent::LibEventInstance& instance, const 
     CHECK(instance.libevent != nullptr, "Incorrect curl instance");
     mh::libevent::LibEvent &libevent = *instance.libevent.get();
     
-    const size_t found = url.find_last_of(":");
-    std::string host = url;
+    const std::string host = getDomainFromUri(url);
+    const std::string portStr = getPortFromUri(url);
+    const std::string path = getPathFromUri(url);
     int port = 80;
-    if (found != url.npos && url.substr(0, found) != "http" && url.substr(0, found) != "https") {
-        host = url.substr(0, found);
-        port = std::stoi(url.substr(found + 1));
+    if (!portStr.empty()) {
+        port = std::stoi(portStr);
     }
-    std::string path;
-    const size_t foundPath = url.find("/");
-    if (foundPath != url.npos) {
-        host = url.substr(0, std::min(host.size(), foundPath));
-        path = url.substr(foundPath);
-    }
-    
+        
     std::string response;
     libevent.post_keep_alive(host, port, host, path, postData, response, timeoutSec * 1000);
     

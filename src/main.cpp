@@ -111,7 +111,7 @@ int main (int argc, char *const *argv) {
     //signal(SIGABRT, crash_handler);
     
     initializeStopProgram();
-        
+
     if (argc != 2) {
         std::cout << "path_to_config" << std::endl;
         return -1;
