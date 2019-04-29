@@ -13,7 +13,7 @@ libevent 2.1.8
 
 ## Build
 
-Please follow these steps to build and run Proxy on Ubuntu 14.04 x64:
+Please follow these steps to build and run Torrent on Ubuntu 14.04 x64:
 1. Preparation
 ```shell
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -47,7 +47,7 @@ sudo make install
 ```
 4. Get and compile libmicrohttpd2
 
-Please note: you must use this libmicrohttpd2 library, because the original libmicrohttpd library has no all functions available which are necessary for running Proxy.
+Please note: you must use this libmicrohttpd2 library, because the original libmicrohttpd library has no all functions available which are necessary for running Torrent.
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/libmicrohttpd2
@@ -73,9 +73,9 @@ cd Node-InfrastructureTorrent/build
 ./build.sh
 ```
 
-## Update proxy to recent version
+## Update torrent to recent version
 
-1. Stop running proxy:
+1. Stop running torrent:
 ```shell
 kill `ps axuwf|grep torrent_node|grep -v grep|awk '{print $2}'`
 ```
@@ -90,22 +90,22 @@ rm -rf
 cmake ..
 make -j
 ```
-3. Start proxy:
+3. Start torrent:
 ```shell
 ./torrent_node torrent_config
 ```
 
 ## Script for starting, stopping, restarting.
-Script [proxy.sh](https://github.com/metahashorg/node_proxy/blob/master/proxy.sh) for the following operations with Metahash proxy application:
+Script [torrent.sh](https://github.com/metahashorg/node_torrent/blob/master/torrent.sh) for the following operations with Metahash torrent application:
 * starting, 
 * stopping, 
 * restarting,
 * getting status.
 
-Note: default workdir is `/opt/proxy`. If you’ve install proxy to another location please change workdir in script.
+Note: default workdir is `/opt/torrent`. If you’ve install torrent to another location please change workdir in script.
 
 #### Usage script
 RUN script as follows:
 ```shell
-./proxy.sh status
+./torrent.sh status
 ```
