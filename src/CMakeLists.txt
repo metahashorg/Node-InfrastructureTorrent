@@ -4,6 +4,7 @@ link_directories("/usr/local/lib/sniper")
 include_directories(.)
 include_directories(./3rdParty/secp256k1/include/)
 include_directories(./3rdParty/openssl/include/)
+include_directories(./3rdParty/leveldb/include/)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
@@ -178,6 +179,7 @@ set(PROJECT_LIBS
 )
 
 add_library(${PROJECT_NAME}_lib STATIC ${LIBRARY_HEADERS} ${LIBRARY_SOURCES})
+target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wno-suggest-final-types )
 target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wno-unused-parameter -g -rdynamic -Wno-unused-variable)
 target_compile_options(${PROJECT_NAME}_lib PRIVATE -no-pie -D_GLIBCXX_USE_CXX11_ABI=0)
 Install(TARGETS ${PROJECT_NAME}_lib DESTINATION ${CMAKE_BINARY_DIR}/lib/sync)
@@ -190,6 +192,7 @@ Install(FILES ${LEVELDB_SNAPPY} DESTINATION ${CMAKE_BINARY_DIR}/lib/sync)
 Install(FILES ${LEVELDB_MEMENV} DESTINATION ${CMAKE_BINARY_DIR}/lib/sync)
 
 add_library(common STATIC ${COMMON_SOURCES})
+target_compile_options(common PRIVATE -Wno-suggest-final-types)
 target_compile_options(common PRIVATE -Wno-unused-parameter -g -rdynamic -Wno-unused-variable)
 target_compile_options(common PRIVATE -no-pie -D_GLIBCXX_USE_CXX11_ABI=0)
 Install(TARGETS common DESTINATION ${CMAKE_BINARY_DIR}/lib/common)
@@ -200,6 +203,7 @@ endforeach()
 
 #APP
 add_executable(${PROJECT_NAME} ${PROJECT_MAIN})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wno-suggest-final-types)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wno-unused-parameter -g -rdynamic)
 target_compile_options(${PROJECT_NAME} PRIVATE -no-pie -D_GLIBCXX_USE_CXX11_ABI=0)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-g -rdynamic")
