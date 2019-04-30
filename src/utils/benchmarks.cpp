@@ -60,7 +60,10 @@ static long checkIO() {
     
     int fd2 = ::open(fileName, O_SYNC | O_RDONLY);
     for (size_t i = 0; i < countRepeat; i++) {
-        read(fd, buffer.data(), buffer.size());
+        auto res = read(fd, buffer.data(), buffer.size());
+        if (res == 0) {
+            return 0;
+        }
     }
     close(fd2);
         
@@ -83,15 +86,21 @@ static long checkIO2() {
         buffer[i] = buffer[i % fillTo];
     }
     
-    int fd = ::open(fileName, O_SYNC | O_CREAT | O_WRONLY);
+    int fd = ::open(fileName, O_SYNC | O_CREAT | O_WRONLY, 0600);
     common::Timer tt;
     
-    write(fd, buffer.data(), buffer.size());
+    auto res = write(fd, buffer.data(), buffer.size());
     close(fd);
+    if (res == 0) {
+        return 0;
+    }
     
     int fd2 = ::open(fileName, O_SYNC | O_RDONLY);
-    read(fd, buffer.data(), buffer.size());
+    auto res2 = read(fd, buffer.data(), buffer.size());
     close(fd2);
+    if (res2 == 0) {
+        return 0;
+    }
     
     tt.stop();
     
