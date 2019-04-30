@@ -47,11 +47,14 @@ static long checkIO() {
         buffer[i] = rand() % 256;
     }
 
-    int fd = ::open(fileName, O_SYNC | O_CREAT | O_WRONLY);
+    int fd = ::open(fileName, O_SYNC | O_CREAT | O_WRONLY, 0600);
     common::Timer tt;
     
     for (size_t i = 0; i < countRepeat; i++) {
-        write(fd, buffer.data(), buffer.size());
+        auto res = write(fd, buffer.data(), buffer.size());
+        if (res == 0) {
+            return 0;
+        }
     }
     close(fd);
     
