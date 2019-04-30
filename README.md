@@ -96,7 +96,7 @@ make -j
 ```
 
 ## Script for starting, stopping, restarting.
-Script [torrent.sh](https://github.com/metahashorg/node_torrent/blob/master/torrent.sh) for the following operations with Metahash torrent application:
+Script [torrent.sh](https://github.com/metahashorg/Node-InfrastructureTorrent/blob/master/torrent.sh) for the following operations with Metahash torrent application:
 * starting, 
 * stopping, 
 * restarting,
