@@ -153,12 +153,10 @@ set(PROJECT_LIBS
     dl
         
     event
-    ev.a
     microhttpd.a
     gcrypt
     gnutls
     uriparser.a
-    tcmalloc
     
     curl
 )
