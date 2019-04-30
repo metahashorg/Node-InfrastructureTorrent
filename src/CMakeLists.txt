@@ -1,10 +1,10 @@
 include_directories(. "/usr/local/include")
 link_directories("/usr/local/lib/sniper")
 
-include_directories(.)
-include_directories(./3rdParty/secp256k1/include/)
-include_directories(./3rdParty/openssl/include/)
-include_directories(./3rdParty/leveldb/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/secp256k1/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/include/)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
@@ -132,14 +132,14 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 #find_package(OpenSSL REQUIRED)
 #include_directories(${OPENSSL_INCLUDE_DIR})
 
-find_library(LEVELDB NAMES libleveldb.a HINTS ../3rdParty/leveldb/lib)
-find_library(LEVELDB_SNAPPY NAMES libsnappy.a HINTS ../3rdParty/leveldb/lib)
-find_library(LEVELDB_MEMENV NAMES libmemenv.a HINTS ../3rdParty/leveldb/lib)
+find_library(LEVELDB NAMES libleveldb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/lib)
+find_library(LEVELDB_SNAPPY NAMES libsnappy.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/lib)
+find_library(LEVELDB_MEMENV NAMES libmemenv.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/lib)
 
-find_library(SECP_LIB NAMES libsecp256k1.a HINTS ../3rdParty/secp256k1/lib/)
+find_library(SECP_LIB NAMES libsecp256k1.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/secp256k1/lib/)
 
-find_library(SSL_LIB_1 NAMES libcrypto.a HINTS ../3rdParty/openssl/lib/)
-find_library(SSL_LIB_2 NAMES libssl.a HINTS ../3rdParty/openssl/lib/)
+find_library(SSL_LIB_1 NAMES libcrypto.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
+find_library(SSL_LIB_2 NAMES libssl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
 
 find_package(MHSupport)
 
