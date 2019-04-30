@@ -19,7 +19,7 @@ Please follow these steps to build and run Torrent on Ubuntu 14.04 x64:
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt update
 
-sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev
+sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libconfig-dev libconfig++-dev
     
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 sudo update-alternatives --config gcc
