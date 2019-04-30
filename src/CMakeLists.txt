@@ -5,6 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/secp256k1/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/rapidjson/)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
