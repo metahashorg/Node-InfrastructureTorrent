@@ -6,6 +6,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/secp256k1/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/rapidjson/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/include/)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
@@ -125,6 +126,7 @@ find_library(SECP_LIB NAMES libsecp256k1.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../
 
 find_library(SSL_LIB_1 NAMES libcrypto.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
 find_library(SSL_LIB_2 NAMES libssl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
+find_library(LIBCONFIG NAMES libconfig++.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/lib/)
 
 find_package(MHSupport)
 
@@ -137,7 +139,7 @@ set(PROJECT_LIBS
     mh_xxhash
     mh_libevent
     
-    config++.a
+    ${LIBCONFIG}
     
     stdc++fs.a
     
