@@ -112,22 +112,6 @@ set(PROJECT_MAIN
 #Threads
 find_package(Threads)
 
-
-#boost
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS system filesystem REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-
-
-#fmt
-find_package(fmt REQUIRED)
-
-
-#protobuf
-find_package(Protobuf REQUIRED)
-include_directories(${Protobuf_INCLUDE_DIRS})
-
 #OpenSSL
 #find_package(OpenSSL REQUIRED)
 #include_directories(${OPENSSL_INCLUDE_DIR})
