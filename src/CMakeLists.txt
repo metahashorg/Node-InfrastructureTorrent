@@ -156,7 +156,7 @@ set(PROJECT_LIBS
     microhttpd.a
     gcrypt
     gnutls
-    uriparser.a
+    uriparser
     
     curl
 )
