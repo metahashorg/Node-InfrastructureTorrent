@@ -34,7 +34,7 @@ tar zxfv cmake-3.13.0.tar.gz
 cd cmake-3.13.0
 ./bootstrap
 ./configure
-make
+make -j$(nproc)
 sudo make install 
 ```
 3. Get and compile libevent
@@ -44,7 +44,7 @@ wget https://github.com/libevent/libevent/releases/download/release-2.1.8-stable
 tar zxfv libevent-2.1.8-stable.tar.gz
 cd libevent-2.1.8-stable
 ./configure
-make
+make -j$(nproc)
 sudo make install
 ```
 4. Get and compile libmicrohttpd2
