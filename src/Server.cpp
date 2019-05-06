@@ -27,9 +27,12 @@ using namespace torrent_node_lib;
 
 const static std::string GET_BLOCK_BY_HASH = "get-block-by-hash";
 const static std::string GET_BLOCK_BY_NUMBER = "get-block-by-number";
+const static std::string GET_BLOCKS = "get-blocks";
 const static std::string GET_COUNT_BLOCKS = "get-count-blocks";
 const static std::string GET_DUMP_BLOCK_BY_HASH = "get-dump-block-by-hash";
 const static std::string GET_DUMP_BLOCK_BY_NUMBER = "get-dump-block-by-number";
+const static std::string GET_DUMPS_BLOCKS_BY_HASH = "get-dumps-blocks-by-hash";
+const static std::string GET_DUMPS_BLOCKS_BY_NUMBER = "get-dumps-blocks-by-number";
 const static std::string SIGN_TEST_STRING = "sign-test-string";
 
 const static int HTTP_STATUS_OK = 200;
@@ -62,6 +65,17 @@ T getJsonField(const rapidjson::Value &json, const std::string_view name) {
     } else if constexpr(std::is_same_v<T, std::string>) {
         CHECK_USER(json.HasMember(name.data()) && json[name.data()].IsString(), std::string(name) + " field not found");
         return json[name.data()].GetString();
+    }
+}
+
+template<typename T>
+T getJsonField(const rapidjson::Value &json) {
+    if constexpr (std::is_same_v<T, size_t>) {
+        CHECK_USER(json.IsInt64(), "field not found");
+        return json.GetInt64();
+    } else if constexpr(std::is_same_v<T, std::string>) {
+        CHECK_USER(json.IsString(), "field not found");
+        return json.GetString();
     }
 }
 
@@ -159,6 +173,87 @@ std::string getBlockDump(const rapidjson::Document &doc, const RequestId &reques
     } else {
         return res;
     }
+}
+
+static std::string getBlocks(const RequestId &requestId, const rapidjson::Document &doc, const Sync &sync, bool isFormat, const JsonVersion &version) {
+    CHECK_USER(doc.HasMember("params") && doc["params"].IsObject(), "params field not found");
+    const auto &jsonParams = doc["params"];
+
+    int64_t countBlocks = 0;
+    if (jsonParams.HasMember("countBlocks") && jsonParams["countBlocks"].IsInt()) {
+        countBlocks = jsonParams["countBlocks"].GetInt();
+    }
+    int64_t beginBlock = 0;
+    if (jsonParams.HasMember("beginBlock") && jsonParams["beginBlock"].IsInt()) {
+        beginBlock = jsonParams["beginBlock"].GetInt();
+    }
+
+    BlockTypeInfo type = BlockTypeInfo::Simple;
+    if (jsonParams.HasMember("type") && jsonParams["type"].IsString()) {
+        const std::string typeString = jsonParams["type"].GetString();
+        if (typeString == "simple") {
+            type = BlockTypeInfo::Simple;
+        } else if (typeString == "forP2P") {
+            type = BlockTypeInfo::ForP2P;
+        } else if (typeString == "small") {
+            type = BlockTypeInfo::Small;
+        } else {
+            throwUserErr("Incorrect block type: " + typeString);
+        }
+    }
+
+    bool isForward = false;
+    if (jsonParams.HasMember("direction") && jsonParams["direction"].IsString()) {
+        isForward = jsonParams["direction"].GetString() == std::string("forward");
+    }
+
+    std::vector<BlockHeader> bhs;
+    bhs.reserve(countBlocks);
+
+    const auto processBlock = [&bhs, &sync, type](int64_t i) {
+        bhs.emplace_back(sync.getBlockchain().getBlock(i));
+    };
+
+    if (!isForward) {
+        beginBlock = sync.getBlockchain().countBlocks() - beginBlock;
+        for (int64_t i = beginBlock; i > beginBlock - countBlocks && i > 0; i--) {
+            processBlock(i);
+        }
+    } else {
+        const int64_t maxBlockNum = sync.getBlockchain().countBlocks();
+        for (int64_t i = beginBlock; i < std::min(maxBlockNum + 1, beginBlock + countBlocks); i++) {
+            processBlock(i);
+        }
+    }
+
+    return blockHeadersToJson(requestId, bhs, type, isFormat, version);
+}
+
+template<typename T>
+std::string getBlockDumps(const rapidjson::Document &doc, const RequestId &requestId, const std::string nameParam, const Sync &sync) {
+    CHECK_USER(doc.HasMember("params") && doc["params"].IsObject(), "params field not found");
+    const auto &jsonParams = doc["params"];
+    bool isSign = false;
+    if (jsonParams.HasMember("isSign") && jsonParams["isSign"].IsBool()) {
+        isSign = jsonParams["isSign"].GetBool();
+    }
+    CHECK_USER(jsonParams.HasMember(nameParam.c_str()) && jsonParams[nameParam.c_str()].IsArray(), "hashes field not found");
+    const auto &jsonVals = jsonParams[nameParam.c_str()].GetArray();
+    std::vector<std::string> result;
+    for (const auto &jsonVal: jsonVals) {
+        const T &hashOrNumber = getJsonField<T>(jsonVal);
+
+        const size_t fromByte = 0;
+        const size_t toByte = std::numeric_limits<size_t>::max();
+
+        const BlockHeader bh = sync.getBlockchain().getBlock(hashOrNumber);
+        CHECK(bh.blockNumber.has_value(), "block " + to_string(hashOrNumber) + " not found");
+        const std::string res = sync.getBlockDump(bh, fromByte, toByte, false, isSign);
+
+        CHECK(!res.empty(), "block " + to_string(hashOrNumber) + " not found");
+        result.emplace_back(res);
+    }
+    return genDumpBlocksBinary(result);
 }
 
 static std::string signTestString(const std::string &strBinary, bool isHex, const RequestId &requestId, const Sync &sync) {
@@ -264,10 +359,16 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
             response = getBlock<std::string>(requestId, doc, "hash", sync, isFormatJson, jsonVersion);
         } else if (func == GET_BLOCK_BY_NUMBER) {
             response = getBlock<size_t>(requestId, doc, "number", sync, isFormatJson, jsonVersion);
+        } else if (func == GET_BLOCKS) {
+            response = getBlocks(requestId, doc, sync, isFormatJson, jsonVersion);
         } else if (func == GET_DUMP_BLOCK_BY_HASH) {
             response = getBlockDump<std::string>(doc, requestId, "hash", sync, isFormatJson);
         } else if (func == GET_DUMP_BLOCK_BY_NUMBER) {
             response = getBlockDump<size_t>(doc, requestId, "number", sync, isFormatJson);
+        } else if (func == GET_DUMPS_BLOCKS_BY_HASH) {
+            response = getBlockDumps<std::string>(doc, requestId, "hashes", sync);
+        } else if (func == GET_DUMPS_BLOCKS_BY_NUMBER) {
+            response = getBlockDumps<size_t>(doc, requestId, "numbers", sync);
         } else if (func == GET_COUNT_BLOCKS) {
             const size_t countBlocks = sync.getBlockchain().countBlocks();
             

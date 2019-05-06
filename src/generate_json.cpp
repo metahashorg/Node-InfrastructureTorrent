@@ -51,7 +51,7 @@ std::string genErrorResponse(const RequestId &requestId, int code, const std::st
     return jsonToString(jsonDoc, false);
 }
 
-static rapidjson::Value blockHeaderToJson(const BlockHeader &bh, const std::optional<std::reference_wrapper<const BlockHeader>> &nextBlock, rapidjson::Document::AllocatorType &allocator, BlockTypeInfo type, const JsonVersion &version) {
+static rapidjson::Value blockHeaderToJson(const BlockHeader &bh, rapidjson::Document::AllocatorType &allocator, BlockTypeInfo type, const JsonVersion &version) {
     const bool isStringValue = version == JsonVersion::V2;
     
     CHECK(bh.blockNumber.has_value(), "Block header not set");
@@ -86,7 +86,7 @@ std::string blockHeaderToJson(const RequestId &requestId, const BlockHeader &bh,
     rapidjson::Document doc(rapidjson::kObjectType);
     auto &allocator = doc.GetAllocator();
     addIdToResponse(requestId, doc, allocator);
-    doc.AddMember("result", blockHeaderToJson(bh, nextBlock, allocator, type, version), allocator);
+    doc.AddMember("result", blockHeaderToJson(bh, allocator, type, version), allocator);
     return jsonToString(doc, isFormat);
 }
 
@@ -174,4 +174,32 @@ std::vector<MinimumBlockHeader> parseBlocksHeader(const std::string &response) {
     }
     
     return result;
+}
+
+std::string blockHeadersToJson(const RequestId &requestId, const std::vector<BlockHeader> &bh, BlockTypeInfo type, bool isFormat, const JsonVersion &version) {
+    rapidjson::Document doc(rapidjson::kObjectType);
+    auto &allocator = doc.GetAllocator();
+    addIdToResponse(requestId, doc, allocator);
+    rapidjson::Value vals(rapidjson::kArrayType);
+    for (size_t i = 0; i < bh.size(); i++) {
+        const BlockHeader &b  = bh[i];
+
+        if (b.blockNumber == 0) {
+            return genErrorResponse(requestId, -32603, "Incorrect block number: 0. Genesis block begin with number 1");
+        }
+        vals.PushBack(blockHeaderToJson(b, allocator, type, version), allocator);
+    }
+    doc.AddMember("result", vals, allocator);
+    return jsonToString(doc, isFormat);
+}
+
+std::string genDumpBlocksBinary(const std::vector<std::string> &blocks) {
+    std::string res;
+    if (!blocks.empty()) {
+        res.reserve((8 + blocks[0].size() + 10) * blocks.size());
+    }
+    for (const std::string &block: blocks) {
+        res += serializeStringBigEndian(block);
+    }
+    return res;
 }

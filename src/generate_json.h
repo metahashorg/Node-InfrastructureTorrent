@@ -40,4 +40,8 @@ torrent_node_lib::MinimumBlockHeader parseBlockHeader(const std::string &respons
 
 std::vector<torrent_node_lib::MinimumBlockHeader> parseBlocksHeader(const std::string &response);
 
+std::string blockHeadersToJson(const RequestId &requestId, const std::vector<torrent_node_lib::BlockHeader> &bh, BlockTypeInfo type, bool isFormat, const JsonVersion &version);
+
+std::string genDumpBlocksBinary(const std::vector<std::string> &blocks);
+
 #endif // GENERATE_JSON_H_
