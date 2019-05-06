@@ -8,6 +8,7 @@
 namespace torrent_node_lib {
 class BlockChainReadInterface;
 struct BlockHeader;
+struct MinimumBlockHeader;
 }
 
 struct RequestId {
@@ -32,5 +33,11 @@ std::string genCountBlockJson(const RequestId &requestId, size_t countBlocks, bo
 std::string genBlockDumpJson(const RequestId &requestId, const std::string &blockDump, bool isFormat);
 
 std::string genTestSignStringJson(const RequestId &requestId, const std::string &responseHex);
+
+std::vector<std::string> parseDumpBlocksBinary(const std::string &response);
+
+torrent_node_lib::MinimumBlockHeader parseBlockHeader(const std::string &response);
+
+std::vector<torrent_node_lib::MinimumBlockHeader> parseBlocksHeader(const std::string &response);
 
 #endif // GENERATE_JSON_H_

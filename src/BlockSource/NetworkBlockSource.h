@@ -20,7 +20,7 @@ class P2P;
 class NetworkBlockSource: public BlockSource, common::no_copyable, common::no_moveable {
 public:
     
-    NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign);
+    NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign);
     
     void initialize() override;
     
@@ -37,7 +37,7 @@ public:
 private:
     
     struct AdvancedBlock {
-        GetNewBlocksFromServer::BlockHeader header;
+        MinimumBlockHeader header;
         BlockInfo bi;
         std::string dump;
         std::exception_ptr exception;

@@ -10,6 +10,7 @@
 #include "jsonUtils.h"
 #include "check.h"
 #include "convertStrings.h"
+#include "utils/serialize.h"
 
 #include "BlockInfo.h"
 #include "Workers/NodeTestsBlockInfo.h"
@@ -118,4 +119,59 @@ std::string genTestSignStringJson(const RequestId &requestId, const std::string 
     resultJson.AddMember("data", strToJson(responseHex, allocator), allocator);
     doc.AddMember("result", resultJson, allocator);
     return jsonToString(doc, false);
+}
+
+std::vector<std::string> parseDumpBlocksBinary(const std::string &response) {
+    std::vector<std::string> res;
+    size_t from = 0;
+    while (from < response.size()) {
+        res.emplace_back(deserializeStringBigEndian(response, from));
+    }
+    return res;
+}
+
+static MinimumBlockHeader parseBlockHeader(const rapidjson::Value &resultJson) {    
+    MinimumBlockHeader result;
+    CHECK(resultJson.HasMember("number") && resultJson["number"].IsInt64(), "number field not found");
+    result.number = resultJson["number"].GetInt64();
+    CHECK(resultJson.HasMember("hash") && resultJson["hash"].IsString(), "hash field not found");
+    result.hash = resultJson["hash"].GetString();
+    CHECK(resultJson.HasMember("prev_hash") && resultJson["prev_hash"].IsString(), "prev_hash field not found");
+    result.parentHash = resultJson["prev_hash"].GetString();
+    CHECK(resultJson.HasMember("size") && resultJson["size"].IsInt64(), "size field not found");
+    result.blockSize = resultJson["size"].GetInt64();
+    CHECK(resultJson.HasMember("fileName") && resultJson["fileName"].IsString(), "fileName field not found");
+    result.fileName = resultJson["fileName"].GetString();
+    
+    return result;
+}
+
+MinimumBlockHeader parseBlockHeader(const std::string &response) {
+    rapidjson::Document doc;
+    const rapidjson::ParseResult pr = doc.Parse(response.c_str());
+    CHECK(pr, "rapidjson parse error. Data: " + response);
+    
+    CHECK(!doc.HasMember("error") || doc["error"].IsNull(), jsonToString(doc["error"], false));
+    CHECK(doc.HasMember("result") && doc["result"].IsObject(), "result field not found");
+    const auto &resultJson = doc["result"];
+    
+    return parseBlockHeader(resultJson);
+}
+
+std::vector<MinimumBlockHeader> parseBlocksHeader(const std::string &response) {
+    rapidjson::Document doc;
+    const rapidjson::ParseResult pr = doc.Parse(response.c_str());
+    CHECK(pr, "rapidjson parse error. Data: " + response);
+    
+    CHECK(!doc.HasMember("error") || doc["error"].IsNull(), jsonToString(doc["error"], false));
+    CHECK(doc.HasMember("result") && doc["result"].IsArray(), "result field not found");
+    const auto &resultJson = doc["result"].GetArray();
+    
+    std::vector<MinimumBlockHeader> result;
+    for (const auto &rJson: resultJson) {
+        CHECK(rJson.IsObject(), "result field not found");
+        result.emplace_back(parseBlockHeader(rJson));
+    }
+    
+    return result;
 }

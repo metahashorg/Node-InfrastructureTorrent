@@ -15,8 +15,8 @@ namespace torrent_node_lib {
 
 const static size_t COUNT_ADVANCED_BLOCKS = 8;
     
-NetworkBlockSource::NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign) 
-    : getterBlocks(maxAdvancedLoadBlocks, p2p)
+NetworkBlockSource::NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign) 
+    : getterBlocks(maxAdvancedLoadBlocks, countBlocksInBatch, p2p)
     , folderPath(folderPath)
     , saveAllTx(saveAllTx)
     , isValidate(isValidate)
@@ -113,7 +113,7 @@ void NetworkBlockSource::getExistingBlock(const BlockHeader& bh, BlockInfo& bi, 
     CHECK(bh.blockNumber.has_value(), "Block number not set");
     const GetNewBlocksFromServer::LastBlockResponse lastBlock = getterBlocks.getLastBlock();
     CHECK(!lastBlock.error.has_value(), lastBlock.error.value());
-    const GetNewBlocksFromServer::BlockHeader nextBlockHeader = getterBlocks.getBlockHeaderWithoutAdvanceLoad(bh.blockNumber.value(), lastBlock.servers[0]);
+    const MinimumBlockHeader nextBlockHeader = getterBlocks.getBlockHeaderWithoutAdvanceLoad(bh.blockNumber.value(), lastBlock.servers[0]);
     blockDump = getterBlocks.getBlockDumpWithoutAdvancedLoad(nextBlockHeader.hash, nextBlockHeader.blockSize, lastBlock.servers, isVerifySign);
     if (isVerifySign) {
         const BlockSignatureCheckResult signBlock = checkSignatureBlock(blockDump);

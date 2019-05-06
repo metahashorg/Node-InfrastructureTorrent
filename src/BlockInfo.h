@@ -187,6 +187,14 @@ struct TransactionInfo {
     static std::set<uint64_t> getForgingIntStatuses();
 };
 
+struct MinimumBlockHeader {
+    size_t number;
+    size_t blockSize;
+    std::string hash;
+    std::string parentHash;
+    std::string fileName;
+};
+
 struct BlockHeader {
     size_t timestamp;
     uint64_t blockSize;

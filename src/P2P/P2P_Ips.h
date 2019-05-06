@@ -3,9 +3,11 @@
 
 #include "P2P.h"
 
-#include "curlWrapper.h"
-
 #include <map>
+
+namespace common {
+struct CurlInstance;
+}
 
 namespace torrent_node_lib {
 
@@ -32,7 +34,7 @@ private:
     
     std::vector<std::reference_wrapper<const Server>> getServersList(const std::vector<Server> &srvrs) const;
     
-    std::string request(const common::Curl::CurlInstance &curl, const std::string &qs, const std::string &postData, const std::string &header, const std::string &server) const;
+    std::string request(const common::CurlInstance &curl, const std::string &qs, const std::string &postData, const std::string &header, const std::string &server) const;
     
     std::vector<std::string> requestImpl(size_t responseSize, size_t minResponseSize, bool isPrecisionSize, const torrent_node_lib::MakeQsAndPostFunction &makeQsAndPost, const std::string &header, const torrent_node_lib::ResponseParseFunction &responseParse, const std::vector<std::string> &hintsServers) const;
     
@@ -42,7 +44,7 @@ private:
     
     size_t countConnections;
     
-    std::map<std::string, std::vector<common::Curl::CurlInstance>> curls;
+    std::map<std::string, std::vector<common::CurlInstance>> curls;
     
 };
 

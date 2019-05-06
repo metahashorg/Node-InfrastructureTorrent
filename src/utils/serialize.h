@@ -12,7 +12,7 @@ namespace torrent_node_lib {
 
 // Процедуры сериализации сделаны таким образом, чтобы младшие разряды оказывались в конце
 template<typename T>
-inline std::string toBinaryString(T val) {
+inline std::string toBinaryStringBigEndian(T val) {
     std::string result(sizeof(T), 0);
     int i = result.size() - 1;
     while (val != 0 && i >= 0) {
@@ -25,7 +25,7 @@ inline std::string toBinaryString(T val) {
 
 // Процедуры сериализации сделаны таким образом, чтобы младшие разряды оказывались в конце
 template<typename T>
-inline void toBinaryString(T val, std::vector<char> &buffer) {
+inline void toBinaryStringBigEndian(T val, std::vector<char> &buffer) {
     int i = sizeof(val) - 1;
     const size_t oldSize = buffer.size();
     buffer.resize(oldSize + sizeof(val), 0);
@@ -37,7 +37,7 @@ inline void toBinaryString(T val, std::vector<char> &buffer) {
 }
 
 template<typename T>
-inline T fromBinaryString(const std::string &raw, size_t fromPos, size_t &endPos) {
+inline T fromBinaryStringBigEndian(const std::string &raw, size_t fromPos, size_t &endPos) {
     endPos = fromPos;
     constexpr size_t sizeField = sizeof(T);
     if (raw.size() < sizeField + fromPos) {
@@ -54,45 +54,45 @@ inline T fromBinaryString(const std::string &raw, size_t fromPos, size_t &endPos
 }
 
 template<typename T>
-inline std::string serializeInt(T intValue) {
-    return toBinaryString<T>(intValue);
+inline std::string serializeIntBigEndian(T intValue) {
+    return toBinaryStringBigEndian<T>(intValue);
 }
 
 template<typename T>
-inline void serializeInt(T intValue, std::vector<char> &buffer) {
-    toBinaryString<T>(intValue, buffer);
+inline void serializeIntBigEndian(T intValue, std::vector<char> &buffer) {
+    toBinaryStringBigEndian<T>(intValue, buffer);
 }
 
-inline std::string serializeString(const std::string &str) {
+inline std::string serializeStringBigEndian(const std::string &str) {
     std::string res;
     res.reserve(str.size() + 10);
-    res += serializeInt<size_t>(str.size());
+    res += serializeIntBigEndian<size_t>(str.size());
     res += str;
     return res;
 }
 
-inline void serializeString(const std::string &str, std::vector<char> &buffer) {
-    serializeInt<size_t>(str.size(), buffer);
+inline void serializeStringBigEndian(const std::string &str, std::vector<char> &buffer) {
+    serializeIntBigEndian<size_t>(str.size(), buffer);
     buffer.insert(buffer.end(), str.begin(), str.end());
 }
 
 template<typename T>
-inline T deserializeInt(const std::string &raw, size_t fromPos, size_t &endPos) {
-    const T val = fromBinaryString<T>(raw, fromPos, endPos);
+inline T deserializeIntBigEndian(const std::string &raw, size_t fromPos, size_t &endPos) {
+    const T val = fromBinaryStringBigEndian<T>(raw, fromPos, endPos);
     return val;
 }
 
 template<typename T>
-inline T deserializeInt(const std::string &raw, size_t &fromPos) {
+inline T deserializeIntBigEndian(const std::string &raw, size_t &fromPos) {
     size_t endPos = fromPos;
-    const T val = deserializeInt<T>(raw, fromPos, endPos);
+    const T val = deserializeIntBigEndian<T>(raw, fromPos, endPos);
     CHECK(endPos != fromPos, "Incorrect raw");
     fromPos = endPos;
     return val;
 }
 
-inline std::string deserializeString(const std::string &raw, size_t fromPos, size_t &endPos) {
-    const size_t sizeString = deserializeInt<size_t>(raw, fromPos, endPos);
+inline std::string deserializeStringBigEndian(const std::string &raw, size_t fromPos, size_t &endPos) {
+    const size_t sizeString = deserializeIntBigEndian<size_t>(raw, fromPos, endPos);
     if (fromPos == endPos) {
         return "";
     }
@@ -104,13 +104,50 @@ inline std::string deserializeString(const std::string &raw, size_t fromPos, siz
     return str;
 }
 
-inline std::string deserializeString(const std::string &raw, size_t &fromPos) {
+inline std::string deserializeStringBigEndian(const std::string &raw, size_t &fromPos) {
     size_t endPos = fromPos;
-    const std::string str = deserializeString(raw, fromPos, endPos);
+    const std::string str = deserializeStringBigEndian(raw, fromPos, endPos);
     CHECK(endPos != fromPos, "Incorrect raw");
     fromPos = endPos;
     
     return str;
+}
+
+
+template<typename T>
+inline std::string serializeInt(T intValue) {
+    return serializeIntBigEndian<T>(intValue);
+}
+
+template<typename T>
+inline void serializeInt(T intValue, std::vector<char> &buffer) {
+    serializeIntBigEndian<T>(intValue, buffer);
+}
+
+inline std::string serializeString(const std::string &str) {
+    return serializeStringBigEndian(str);
+}
+
+inline void serializeString(const std::string &str, std::vector<char> &buffer) {
+    serializeStringBigEndian(str, buffer);
+}
+
+template<typename T>
+inline T deserializeInt(const std::string &raw, size_t fromPos, size_t &endPos) {
+    return deserializeIntBigEndian<T>(raw, fromPos, endPos);
+}
+
+template<typename T>
+inline T deserializeInt(const std::string &raw, size_t &fromPos) {
+    return deserializeIntBigEndian<T>(raw, fromPos);
+}
+
+inline std::string deserializeString(const std::string &raw, size_t fromPos, size_t &endPos) {
+    return deserializeStringBigEndian(raw, fromPos, endPos);
+}
+
+inline std::string deserializeString(const std::string &raw, size_t &fromPos) {    
+    return deserializeStringBigEndian(raw, fromPos);
 }
 
 }

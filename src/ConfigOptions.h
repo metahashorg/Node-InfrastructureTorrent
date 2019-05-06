@@ -42,13 +42,15 @@ struct CachesOptions {
 
 struct GetterBlockOptions {
     const size_t maxAdvancedLoadBlocks;
+    const size_t countBlocksInBatch;
     P2P* const p2p;
     const bool getBlocksFromFile;
     const bool isValidate;
     const bool isValidateSign;
     
-    GetterBlockOptions(size_t maxAdvancedLoadBlocks, P2P* p2p, bool getBlocksFromFile, bool isValidate, bool isValidateSign)
+    GetterBlockOptions(size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P* p2p, bool getBlocksFromFile, bool isValidate, bool isValidateSign)
         : maxAdvancedLoadBlocks(maxAdvancedLoadBlocks)
+        , countBlocksInBatch(countBlocksInBatch)
         , p2p(p2p)
         , getBlocksFromFile(getBlocksFromFile)
         , isValidate(isValidate)

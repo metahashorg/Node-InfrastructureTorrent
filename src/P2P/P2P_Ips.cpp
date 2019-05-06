@@ -25,7 +25,7 @@ P2P_Ips::P2P_Ips(const std::vector<std::string> &servers, size_t countConnection
     }
 }
 
-std::string P2P_Ips::request(const Curl::CurlInstance &curl, const std::string& qs, const std::string& postData, const std::string& header, const std::string& server) const {
+std::string P2P_Ips::request(const CurlInstance &curl, const std::string& qs, const std::string& postData, const std::string& header, const std::string& server) const {
     std::string url = server;
     CHECK(!url.empty(), "server empty");
     if (url[url.size() - 1] != '/') {

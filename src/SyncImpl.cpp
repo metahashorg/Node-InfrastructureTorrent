@@ -28,7 +28,7 @@ const static std::string VERSION_DB = "v3.4";
     
 bool isInitialized = false;
 
-void SyncImpl::initialize(const std::string& folderPath, size_t maxAdvancedLoadBlocks, P2P* p2p, bool getBlocksFromFile, bool isValidateSign) {
+void SyncImpl::initialize(const std::string& folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P* p2p, bool getBlocksFromFile, bool isValidateSign) {
     CHECK(!modules[MODULE_USERS] || !getBlocksFromFile, "Options saveOnlyUsers and getBlocksFromFile not compatible");
     
     if (getBlocksFromFile) {
@@ -38,7 +38,7 @@ void SyncImpl::initialize(const std::string& folderPath, size_t maxAdvancedLoadB
         CHECK(p2p != nullptr, "p2p nullptr");
         isSaveBlockToFiles = modules[MODULE_BLOCK_RAW];
         const bool isSaveAllTx = modules[MODULE_USERS];
-        getBlockAlgorithm = std::make_unique<NetworkBlockSource>(folderPath, maxAdvancedLoadBlocks, *p2p, isSaveAllTx, isValidate, isValidateSign);
+        getBlockAlgorithm = std::make_unique<NetworkBlockSource>(folderPath, maxAdvancedLoadBlocks, countBlocksInBatch, *p2p, isSaveAllTx, isValidate, isValidateSign);
     }
 }
 
@@ -51,7 +51,7 @@ SyncImpl::SyncImpl(const std::string& folderPath, const LevelDbOptions& leveldbO
     if (getterBlocksOpt.isValidate) {
         CHECK(!getterBlocksOpt.getBlocksFromFile, "validate and get_blocks_from_file options not compatible");
     }
-    initialize(folderPath, getterBlocksOpt.maxAdvancedLoadBlocks, getterBlocksOpt.p2p, getterBlocksOpt.getBlocksFromFile, getterBlocksOpt.isValidateSign);
+    initialize(folderPath, getterBlocksOpt.maxAdvancedLoadBlocks, getterBlocksOpt.countBlocksInBatch, getterBlocksOpt.p2p, getterBlocksOpt.getBlocksFromFile, getterBlocksOpt.isValidateSign);
     
     if (!signKeyName.empty()) {
         const std::string signKeyPath = signKeyName + ".raw.prv";

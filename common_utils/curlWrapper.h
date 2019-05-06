@@ -10,39 +10,41 @@ typedef void CURL;
 
 namespace common {
 
+struct CurlInstance {
+    friend struct Curl;
+    
+    CurlInstance()
+        : curl(nullptr, defaultDeleter)
+    {}
+    
+    CurlInstance(std::unique_ptr<CURL, void(*)(void*)> &&curl)
+        : curl(std::move(curl))
+    {}
+    
+    CurlInstance(CurlInstance &&second)
+        : curl(std::move(second.curl))
+    {}
+    
+    CurlInstance& operator=(CurlInstance &&second) {
+        this->curl = std::move(second.curl);
+        return *this;
+    }
+    
+    std::unique_ptr<CURL, void(*)(void*)> curl;
+    
+private:
+    
+    static void defaultDeleter(void*) {
+        
+    }
+    
+    mutable std::mutex mut;
+};
+    
 struct Curl {
 public:
     
-    struct CurlInstance {
-        friend struct Curl;
-        
-        CurlInstance()
-            : curl(nullptr, defaultDeleter)
-        {}
-        
-        CurlInstance(std::unique_ptr<CURL, void(*)(void*)> &&curl)
-            : curl(std::move(curl))
-        {}
-                
-        CurlInstance(CurlInstance &&second)
-            : curl(std::move(second.curl))
-        {}
-        
-        CurlInstance& operator=(CurlInstance &&second) {
-            this->curl = std::move(second.curl);
-            return *this;
-        }
-                
-        std::unique_ptr<CURL, void(*)(void*)> curl;
-        
-    private:
-        
-        static void defaultDeleter(void*) {
-            
-        }
-        
-        mutable std::mutex mut;
-    };
+    using CurlInstance = common::CurlInstance;
     
 public:
     
