@@ -34,14 +34,18 @@ std::string genBlockDumpJson(const RequestId &requestId, const std::string &bloc
 
 std::string genTestSignStringJson(const RequestId &requestId, const std::string &responseHex);
 
-std::vector<std::string> parseDumpBlocksBinary(const std::string &response);
+std::string genDumpBlockBinary(const std::string &block, bool isCompress);
+
+std::string genDumpBlocksBinary(const std::vector<std::string> &blocks, bool isCompress);
+
+std::string parseDumpBlockBinary(const std::string &response, bool isCompress);
+
+std::vector<std::string> parseDumpBlocksBinary(const std::string &response, bool isCompress);
+
+std::string blockHeadersToJson(const RequestId &requestId, const std::vector<torrent_node_lib::BlockHeader> &bh, BlockTypeInfo type, bool isFormat, const JsonVersion &version);
 
 torrent_node_lib::MinimumBlockHeader parseBlockHeader(const std::string &response);
 
 std::vector<torrent_node_lib::MinimumBlockHeader> parseBlocksHeader(const std::string &response);
-
-std::string blockHeadersToJson(const RequestId &requestId, const std::vector<torrent_node_lib::BlockHeader> &bh, BlockTypeInfo type, bool isFormat, const JsonVersion &version);
-
-std::string genDumpBlocksBinary(const std::vector<std::string> &blocks);
 
 #endif // GENERATE_JSON_H_

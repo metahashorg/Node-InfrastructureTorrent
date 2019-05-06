@@ -1,12 +1,13 @@
-#ifndef LEVELDB_OPTIONS_H_
-#define LEVELDB_OPTIONS_H_
+#ifndef CONFIG_OPTIONS_H_
+#define CONFIG_OPTIONS_H_
 
 #include <string>
+
 
 namespace torrent_node_lib {
 
 class P2P;
-
+    
 struct LevelDbOptions {
     size_t writeBufSizeMb;
     bool isBloomFilter;
@@ -47,14 +48,16 @@ struct GetterBlockOptions {
     const bool getBlocksFromFile;
     const bool isValidate;
     const bool isValidateSign;
+    const bool isCompress;
     
-    GetterBlockOptions(size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P* p2p, bool getBlocksFromFile, bool isValidate, bool isValidateSign)
+    GetterBlockOptions(size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P* p2p, bool getBlocksFromFile, bool isValidate, bool isValidateSign, bool isCompress)
         : maxAdvancedLoadBlocks(maxAdvancedLoadBlocks)
         , countBlocksInBatch(countBlocksInBatch)
         , p2p(p2p)
         , getBlocksFromFile(getBlocksFromFile)
         , isValidate(isValidate)
         , isValidateSign(isValidateSign)
+        , isCompress(isCompress)
     {}
 };
 
@@ -72,4 +75,4 @@ struct TestNodesOptions {
 
 }
 
-#endif // LEVELDB_OPTIONS_H_
+#endif // CONFIG_OPTIONS_H_

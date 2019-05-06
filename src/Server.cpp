@@ -162,10 +162,14 @@ std::string getBlockDump(const rapidjson::Document &doc, const RequestId &reques
     if (jsonParams.HasMember("isSign") && jsonParams["isSign"].IsBool()) {
         isSign = jsonParams["isSign"].GetBool();
     }
+    bool isCompress = false;
+    if (jsonParams.HasMember("compress") && jsonParams["compress"].IsBool()) {
+        isCompress = jsonParams["compress"].GetBool();
+    }
     
     const BlockHeader bh = sync.getBlockchain().getBlock(hashOrNumber);
     CHECK(bh.blockNumber.has_value(), "block " + to_string(hashOrNumber) + " not found");
-    const std::string res = sync.getBlockDump(bh, fromByte, toByte, isHex, isSign);
+    const std::string res = genDumpBlockBinary(sync.getBlockDump(bh, fromByte, toByte, isHex, isSign), isCompress);
     
     CHECK(!res.empty(), "block " + to_string(hashOrNumber) + " not found");
     if (isHex) {
@@ -237,6 +241,10 @@ std::string getBlockDumps(const rapidjson::Document &doc, const RequestId &reque
     if (jsonParams.HasMember("isSign") && jsonParams["isSign"].IsBool()) {
         isSign = jsonParams["isSign"].GetBool();
     }
+    bool isCompress = false;
+    if (jsonParams.HasMember("compress") && jsonParams["compress"].IsBool()) {
+        isCompress = jsonParams["compress"].GetBool();
+    }
     CHECK_USER(jsonParams.HasMember(nameParam.c_str()) && jsonParams[nameParam.c_str()].IsArray(), "hashes field not found");
     const auto &jsonVals = jsonParams[nameParam.c_str()].GetArray();
     std::vector<std::string> result;
@@ -253,7 +261,7 @@ std::string getBlockDumps(const rapidjson::Document &doc, const RequestId &reque
         CHECK(!res.empty(), "block " + to_string(hashOrNumber) + " not found");
         result.emplace_back(res);
     }
-    return genDumpBlocksBinary(result);
+    return genDumpBlocksBinary(result, isCompress);
 }
 
 static std::string signTestString(const std::string &strBinary, bool isHex, const RequestId &requestId, const Sync &sync) {

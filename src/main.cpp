@@ -207,6 +207,10 @@ int main (int argc, char *const *argv) {
         if (allSettings.exists("count_blocks_in_batch")) {
             countBlocksInBatch = static_cast<int>(allSettings["count_blocks_in_batch"]);
         }
+        bool isCompress = false;
+        if (allSettings.exists("compress_blocks")) {
+            isCompress = static_cast<bool>(allSettings["compress_blocks"]);
+        }
                
         std::set<std::string> modulesStr;
         for (const std::string &moduleStr: allSettings["modules"]) {
@@ -241,7 +245,7 @@ int main (int argc, char *const *argv) {
             pathToFolder, 
             LevelDbOptions(settingsDb.writeBufSizeMb, settingsDb.isBloomFilter, settingsDb.isChecks, getFullPath("simple", pathToBd), settingsDb.lruCacheMb),
             CachesOptions(maxCountElementsBlockCache, maxCountElementsTxsCache, maxLocalCacheElements),
-            GetterBlockOptions(maxAdvancedLoadBlocks, countBlocksInBatch, p2p.get(), getBlocksFromFile, isValidate, isValidateSign),
+            GetterBlockOptions(maxAdvancedLoadBlocks, countBlocksInBatch, p2p.get(), getBlocksFromFile, isValidate, isValidateSign, isCompress),
             signKey,
             TestNodesOptions(otherPortTorrent, myIp, testNodesServer)
         );

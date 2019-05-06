@@ -10,6 +10,7 @@ using namespace std::placeholders;
 #include "BlockInfo.h"
 
 #include "check.h"
+#include "log.h"
 #include "jsonUtils.h"
 
 using namespace common;
@@ -138,9 +139,11 @@ std::pair<std::string, std::string> GetNewBlocksFromServer::makeRequestForDumpBl
     return std::make_pair(QS, post);
 }
 
-std::pair<std::string, std::string> GetNewBlocksFromServer::makeRequestForDumpBlockSign(const std::string &blockHash) {
+std::pair<std::string, std::string> GetNewBlocksFromServer::makeRequestForDumpBlockSign(const std::string &blockHash, size_t fromByte, size_t toByte) {
     const static std::string QS = "get-dump-block-by-hash";
-    const std::string post = "{\"id\":1,\"params\":{\"hash\": \"" + blockHash + "\", \"isHex\": false, \"isSign\": true}}"; // TODO если isHex true, нужно менять код ниже
+    const std::string post = "{\"id\":1,\"params\":{\"hash\": \"" + blockHash + "\" , \"fromByte\": " + std::to_string(fromByte) + ", \"toByte\": " + std::to_string(toByte) + "\", \"isHex\": false, \"isSign\": true, " + 
+    "\"compress\": " + "false" + 
+    "}}"; // TODO если isHex true, нужно менять код ниже
     return std::make_pair(QS, post);
 }
 
@@ -173,7 +176,8 @@ std::string GetNewBlocksFromServer::getBlockDumpWithoutAdvancedLoad(const std::s
     if (!isSign) {
         return p2p.request(blockSize, true, std::bind(makeRequestForDumpBlock, std::ref(blockHash), _1, _2), "", parseDumpBlockResponse, hintsServers);
     } else {
-        return p2p.request(blockSize + ESTIMATE_SIZE_SIGNATURE, false, std::bind(makeRequestForDumpBlockSign, std::ref(blockHash)), "", parseDumpBlockResponse, hintsServers);
+        const std::string result = p2p.request(blockSize + ESTIMATE_SIZE_SIGNATURE, false, std::bind(makeRequestForDumpBlockSign, std::ref(blockHash), _1, _2), "", parseDumpBlockResponse, hintsServers);
+        return result;
     }
 }
 
@@ -202,12 +206,15 @@ std::string GetNewBlocksFromServer::getBlockDump(const std::string& blockHash, s
     
     const size_t countParts = (blocksHashs.size() + countBlocksInBatch - 1) / countBlocksInBatch;
     
-    const auto makeQsAndPost = [&blocksHashs, isSign, countBlocksInBatch=this->countBlocksInBatch](size_t number) {
+    const auto makeQsAndPost = [&blocksHashs, isSign, countBlocksInBatch=this->countBlocksInBatch, isCompress=this->isCompress](size_t number) {
         CHECK(blocksHashs.size() > number * countBlocksInBatch, "Incorrect number");
         const size_t beginBlock = number * countBlocksInBatch;
         const size_t countBlocks = std::min(countBlocksInBatch, blocksHashs.size() - number * countBlocksInBatch);
         if (countBlocks == 1) {
-            return std::make_pair("get-dump-block-by-hash", "{\"id\":1,\"params\":{\"hash\": \"" + blocksHashs[number] + "\" , \"isHex\": false, \"isSign\": " + (isSign ? "true" : "false") + "}}");
+            return std::make_pair("get-dump-block-by-hash", "{\"id\":1,\"params\":{\"hash\": \"" + blocksHashs[number] + "\" , \"isHex\": false, " + 
+                "\"isSign\": " + (isSign ? "true" : "false") + 
+                ", \"compress\": " + (isCompress ? "true" : "false") + 
+                "}}");
         } else {            
             std::string r;
             r += "{\"id\":1,\"params\":{\"hashes\": [";
@@ -221,7 +228,9 @@ std::string GetNewBlocksFromServer::getBlockDump(const std::string& blockHash, s
                 
                 isFirst = false;
             }
-            r += std::string("], \"isSign\": ") + (isSign ? "true" : "false") + "}}";
+            r += std::string("], \"isSign\": ") + (isSign ? "true" : "false") + 
+            ", \"compress\": " + (isCompress ? "true" : "false") + 
+            "}}";
             
             return std::make_pair("get-dumps-blocks-by-hash", r);
         }
@@ -235,9 +244,9 @@ std::string GetNewBlocksFromServer::getBlockDump(const std::string& blockHash, s
         const size_t blocksInPart = std::min(countBlocksInBatch, blocksHashs.size() - i * countBlocksInBatch);
         
         if (blocksInPart == 1) {
-            advancedLoadsBlocksDumps[blocksHashs[i]] = responses[i];
+            advancedLoadsBlocksDumps[blocksHashs[i]] = parseDumpBlockBinary(responses[i], isCompress);
         } else {
-            const std::vector<std::string> blocks = parseDumpBlocksBinary(responses[i]);
+            const std::vector<std::string> blocks = parseDumpBlocksBinary(responses[i], isCompress);
             CHECK(blocks.size() == blocksInPart, "Incorrect answer");
             CHECK(beginBlock + blocks.size() <= blocksHashs.size(), "Incorrect answer");
             for (size_t j = 0; j < blocks.size(); j++) {

@@ -20,16 +20,17 @@ public:
     
     static std::pair<std::string, std::string> makeRequestForDumpBlock(const std::string &blockHash, size_t fromByte, size_t toByte);
     
-    static std::pair<std::string, std::string> makeRequestForDumpBlockSign(const std::string &blockHash);
+    static std::pair<std::string, std::string> makeRequestForDumpBlockSign(const std::string &blockHash, size_t fromByte, size_t toByte);
     
     static ResponseParse parseDumpBlockResponse(const std::string &result);
     
 public:
     
-    GetNewBlocksFromServer(size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, const P2P &p2p)
+    GetNewBlocksFromServer(size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, const P2P &p2p, bool isCompress)
         : maxAdvancedLoadBlocks(maxAdvancedLoadBlocks)
         , countBlocksInBatch(countBlocksInBatch)
         , p2p(p2p)
+        , isCompress(isCompress)
     {}
         
     LastBlockResponse getLastBlock() const;
@@ -51,6 +52,8 @@ private:
     const size_t countBlocksInBatch;
     
     const P2P &p2p;
+    
+    const bool isCompress;
     
     mutable std::vector<std::pair<size_t, MinimumBlockHeader>> advancedLoadsBlocksHeaders;
     

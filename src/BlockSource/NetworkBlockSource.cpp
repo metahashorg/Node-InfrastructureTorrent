@@ -15,8 +15,8 @@ namespace torrent_node_lib {
 
 const static size_t COUNT_ADVANCED_BLOCKS = 8;
     
-NetworkBlockSource::NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign) 
-    : getterBlocks(maxAdvancedLoadBlocks, countBlocksInBatch, p2p)
+NetworkBlockSource::NetworkBlockSource(const std::string &folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, bool isCompress, P2P &p2p, bool saveAllTx, bool isValidate, bool isVerifySign) 
+    : getterBlocks(maxAdvancedLoadBlocks, countBlocksInBatch, p2p, isCompress)
     , folderPath(folderPath)
     , saveAllTx(saveAllTx)
     , isValidate(isValidate)

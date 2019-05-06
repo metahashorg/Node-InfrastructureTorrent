@@ -7,6 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/rapidjson/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/lz4/include/)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
@@ -92,6 +93,7 @@ set(LIBRARY_SOURCES
     TestP2PNodes.cpp
         
     utils/utils.cpp
+    utils/compress.cpp
     
     utils/benchmarks.cpp
     
@@ -128,6 +130,8 @@ find_library(SSL_LIB_1 NAMES libcrypto.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3r
 find_library(SSL_LIB_2 NAMES libssl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
 find_library(LIBCONFIG NAMES libconfig++.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/lib/)
 
+find_library(LZ4_LIB NAMES lib_lz4.a HINTS ../3rdParty/lz4/lib/)
+
 find_package(MHSupport)
 
 set(PROJECT_LIBS
@@ -138,6 +142,7 @@ set(PROJECT_LIBS
     mh_mhd
     mh_xxhash
     mh_libevent
+    ${LZ4_LIB}
     
     ${LIBCONFIG}
     

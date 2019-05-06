@@ -11,6 +11,7 @@
 #include "check.h"
 #include "convertStrings.h"
 #include "utils/serialize.h"
+#include "utils/compress.h"
 
 #include "BlockInfo.h"
 #include "Workers/NodeTestsBlockInfo.h"
@@ -121,15 +122,6 @@ std::string genTestSignStringJson(const RequestId &requestId, const std::string 
     return jsonToString(doc, false);
 }
 
-std::vector<std::string> parseDumpBlocksBinary(const std::string &response) {
-    std::vector<std::string> res;
-    size_t from = 0;
-    while (from < response.size()) {
-        res.emplace_back(deserializeStringBigEndian(response, from));
-    }
-    return res;
-}
-
 static MinimumBlockHeader parseBlockHeader(const rapidjson::Value &resultJson) {    
     MinimumBlockHeader result;
     CHECK(resultJson.HasMember("number") && resultJson["number"].IsInt64(), "number field not found");
@@ -193,13 +185,43 @@ std::string blockHeadersToJson(const RequestId &requestId, const std::vector<Blo
     return jsonToString(doc, isFormat);
 }
 
-std::string genDumpBlocksBinary(const std::vector<std::string> &blocks) {
+std::string genDumpBlockBinary(const std::string &block, bool isCompress) {
+    if (!isCompress) {
+        return block;
+    } else {
+        return compress(block);
+    }
+}
+
+std::string genDumpBlocksBinary(const std::vector<std::string> &blocks, bool isCompress) {
     std::string res;
     if (!blocks.empty()) {
         res.reserve((8 + blocks[0].size() + 10) * blocks.size());
     }
     for (const std::string &block: blocks) {
         res += serializeStringBigEndian(block);
+    }
+    if (!isCompress) {
+        return res;
+    } else {
+        return compress(res);
+    }
+}
+
+std::string parseDumpBlockBinary(const std::string &response, bool isCompress) {
+    if (!isCompress) {
+        return response;
+    } else {
+        return decompress(response);
+    }
+}
+
+std::vector<std::string> parseDumpBlocksBinary(const std::string &response, bool isCompress) {
+    std::vector<std::string> res;
+    const std::string r = isCompress ? decompress(response) : response;
+    size_t from = 0;
+    while (from < r.size()) {
+        res.emplace_back(deserializeStringBigEndian(r, from));
     }
     return res;
 }
