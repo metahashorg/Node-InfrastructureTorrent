@@ -16,6 +16,8 @@ libevent 2.1.8
 Please follow these steps to build and run Torrent on Ubuntu 14.04 x64:
 1. Preparation
 ```shell
+
+sudo apt install software-properties-common
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt update
 
@@ -32,7 +34,7 @@ tar zxfv cmake-3.13.0.tar.gz
 cd cmake-3.13.0
 ./bootstrap
 ./configure
-make
+make -j$(nproc)
 sudo make install 
 ```
 3. Get and compile libevent
@@ -42,7 +44,7 @@ wget https://github.com/libevent/libevent/releases/download/release-2.1.8-stable
 tar zxfv libevent-2.1.8-stable.tar.gz
 cd libevent-2.1.8-stable
 ./configure
-make
+make -j$(nproc)
 sudo make install
 ```
 4. Get and compile libmicrohttpd2
@@ -54,7 +56,7 @@ git clone https://github.com/metahashorg/libmicrohttpd2
 cd libmicrohttpd2
 ./bootstrap
 ./configure
-make
+make -j$(nproc)
 sudo make install
 ```
 5. Get and compile libmhsupport
@@ -68,8 +70,8 @@ sudo make install
 6. Build Torrent Node
 ```shell
 cd /tmp
-git clone https://github.com/metahashorg/Node-InfrastructureTorrent
-cd Node-InfrastructureTorrent/build
+git clone https://github.com/metahashorg/Node-InfrastructureTorrent torrent_node
+cd torrent_node/build
 ./build.sh
 ```
 
@@ -88,7 +90,7 @@ git pull
 cd build
 rm -rf
 cmake ..
-make -j
+make -j$(nproc)
 ```
 3. Start torrent:
 ```shell
