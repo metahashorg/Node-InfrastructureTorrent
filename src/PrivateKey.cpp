@@ -68,7 +68,7 @@ std::vector<unsigned char> PrivateKey::sign(const unsigned char *data, size_t si
 }
 
 std::string makeFirstPartBlockSign(size_t blockSize) {
-    return serializeInt(blockSize);
+    return serializeIntBigEndian(blockSize);
 }
 
 std::string makeBlockSign(const std::string &blockDump, const PrivateKey &privateKey) {
@@ -80,9 +80,9 @@ std::string makeBlockSign(const std::string &blockDump, const PrivateKey &privat
     
     res.reserve(8 + sign.size() + 8 + pubkey.size() + 8 + address.size() + 1);
     
-    res += serializeString(std::string(sign.begin(), sign.end()));
-    res += serializeString(std::string(pubkey.begin(), pubkey.end()));
-    res += serializeString(address);
+    res += serializeStringBigEndian(std::string(sign.begin(), sign.end()));
+    res += serializeStringBigEndian(std::string(pubkey.begin(), pubkey.end()));
+    res += serializeStringBigEndian(address);
     
     return res;
 }
@@ -91,10 +91,10 @@ BlockSignatureCheckResult checkSignatureBlock(const std::string &blockDump) {
     BlockSignatureCheckResult result;
     
     size_t from = 0;
-    result.block = deserializeString(blockDump, from);
-    result.sign = deserializeString(blockDump, from);
-    result.pubkey = deserializeString(blockDump, from);
-    result.address = deserializeString(blockDump, from);
+    result.block = deserializeStringBigEndian(blockDump, from);
+    result.sign = deserializeStringBigEndian(blockDump, from);
+    result.pubkey = deserializeStringBigEndian(blockDump, from);
+    result.address = deserializeStringBigEndian(blockDump, from);
     
     CHECK(crypto_check_sign_data(std::vector<char>(result.sign.begin(), result.sign.end()), std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()), (const unsigned char*)result.block.data(), result.block.size()), "Not validate");
     const std::string calculatedAddress = makeAddressFromSecpKey(std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()));
@@ -112,9 +112,9 @@ std::string makeTestSign(const std::string &str, const PrivateKey &privateKey) {
     
     res.reserve(8 + sign.size() + 8 + pubkey.size() + 8 + address.size() + 1);
     
-    res += serializeString(std::string(sign.begin(), sign.end()));
-    res += serializeString(std::string(pubkey.begin(), pubkey.end()));
-    res += serializeString(address);
+    res += serializeStringBigEndian(std::string(sign.begin(), sign.end()));
+    res += serializeStringBigEndian(std::string(pubkey.begin(), pubkey.end()));
+    res += serializeStringBigEndian(address);
     
     return res;
 }
@@ -126,9 +126,9 @@ std::string makeTestResultSign(const std::string &str, const PrivateKey &private
 
 void checkSignatureTest(const std::string &text, const std::string &str) {
     size_t from = 0;
-    const std::string sign = deserializeString(str, from);
-    const std::string pubkey = deserializeString(str, from);
-    const std::string address = deserializeString(str, from);
+    const std::string sign = deserializeStringBigEndian(str, from);
+    const std::string pubkey = deserializeStringBigEndian(str, from);
+    const std::string address = deserializeStringBigEndian(str, from);
     
     CHECK(crypto_check_sign_data(std::vector<char>(sign.begin(), sign.end()), std::vector<unsigned char>(pubkey.begin(), pubkey.end()), (const unsigned char*)text.data(), text.size()), "Not validate");
     const std::string calculatedAddress = makeAddressFromSecpKey(std::vector<unsigned char>(pubkey.begin(), pubkey.end()));

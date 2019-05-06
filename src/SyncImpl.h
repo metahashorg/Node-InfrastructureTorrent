@@ -46,7 +46,7 @@ public:
     
 private:
     
-    void initialize(const std::string& folderPath, size_t maxAdvancedLoadBlocks, size_t countBlocksInBatch, bool isCompress, P2P* p2p, bool getBlocksFromFile, bool isValidateSign);
+    void initialize(const std::string& folderPath, const GetterBlockOptions &getterBlocksOpt);
         
 public:
     

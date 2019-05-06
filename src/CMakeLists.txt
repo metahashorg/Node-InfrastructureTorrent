@@ -1,5 +1,4 @@
 include_directories(. "/usr/local/include")
-link_directories("/usr/local/lib/sniper")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/secp256k1/include/)
@@ -53,51 +52,45 @@ set(LIBRARY_HEADERS
 )
 
 set(LIBRARY_SOURCES   
-    LevelDb.cpp
+    Modules.cpp
     BlockChain.cpp
 
     BlockchainUtils.cpp
     BlockchainRead.cpp
     PrivateKey.cpp
     
-    utils/checkVirtual.cpp
-    
     P2P/P2P.cpp
     P2P/P2P_Ips.cpp
-    P2P/P2P_Simple.cpp
+    
     BlockSource/GetNewBlocksFromServers.cpp
-
-    Modules.cpp
-    
-    Address.cpp
-    BlockInfo.cpp
-    Workers/NodeTestsBlockInfo.cpp
-
-    utils/Heap.cpp
-    
-    Cache/Cache.cpp
-    Cache/LocalCache.cpp
-    
-    utils/FileSystem.cpp
-    
     BlockSource/FileBlockSource.cpp
     BlockSource/NetworkBlockSource.cpp
-    
+
+    Address.cpp
+    BlockInfo.cpp
+
+    Cache/Cache.cpp
+    Cache/LocalCache.cpp
+
     synchronize_blockchain.cpp
     SyncImpl.cpp
     
+    Workers/NodeTestsBlockInfo.cpp
     Workers/WorkerMain.cpp
     Workers/WorkerCache.cpp
     Workers/WorkerNodeTest.cpp
-    
+
     TestP2PNodes.cpp
-        
-    utils/utils.cpp
-    utils/compress.cpp
     
-    utils/benchmarks.cpp
-    
+    LevelDb.cpp
     libeventWrapper.cpp
+    
+    utils/FileSystem.cpp
+    utils/checkVirtual.cpp
+    utils/Heap.cpp
+    utils/utils.cpp
+    utils/benchmarks.cpp
+    utils/compress.cpp
 )
 
 set(PROJECT_MAIN
@@ -112,13 +105,8 @@ set(PROJECT_MAIN
     P2P/P2P_Graph.cpp
 )
 
-
 #Threads
 find_package(Threads)
-
-#OpenSSL
-#find_package(OpenSSL REQUIRED)
-#include_directories(${OPENSSL_INCLUDE_DIR})
 
 find_library(LEVELDB NAMES libleveldb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/lib)
 find_library(LEVELDB_SNAPPY NAMES libsnappy.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/lib)

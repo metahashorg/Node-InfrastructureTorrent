@@ -96,10 +96,10 @@ struct SettingsDb {
 static SettingsDb parseSettingsDb(const libconfig::Setting &allSettings, const std::string &prefix) {
     SettingsDb settings;
     if (allSettings.exists(prefix + "write_buffer_size_mb")) {
-        settings.writeBufSizeMb = static_cast<int>(allSettings[(prefix + "write_buffer_size_mb").c_str()]);
-        settings.lruCacheMb = static_cast<int>(allSettings[(prefix + "lru_cache_mb").c_str()]);
-        settings.isBloomFilter = allSettings[(prefix + "is_bloom_filter").c_str()];
-        settings.isChecks = allSettings[(prefix + "is_checks").c_str()];
+        settings.writeBufSizeMb = static_cast<int>(allSettings[(prefix + "write_buffer_size_mb")]);
+        settings.lruCacheMb = static_cast<int>(allSettings[(prefix + "lru_cache_mb")]);
+        settings.isBloomFilter = allSettings[(prefix + "is_bloom_filter")];
+        settings.isChecks = allSettings[(prefix + "is_checks")];
         
         settings.isSet = true;
     }
