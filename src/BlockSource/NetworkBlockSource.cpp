@@ -127,6 +127,7 @@ void NetworkBlockSource::getExistingBlock(const BlockHeader& bh, BlockInfo& bi, 
     bi.header.filePos.fileName = bh.filePos.fileName;
     for (auto &tx : bi.txs) {
         tx.filePos.fileName = bh.filePos.fileName;
+        tx.blockNumber = bh.blockNumber.value();
     }
     bi.header.blockNumber = bh.blockNumber;
 }

@@ -172,18 +172,7 @@ int main (int argc, char *const *argv) {
             signKey = static_cast<const char*>(allSettings["sign_key"]);
         }
         
-        BlockVersion blockVersion = BlockVersion::V1;
-        if (allSettings.exists("block_version")) {
-            const std::string v = allSettings["block_version"];
-            if (v == "v1" || v == "V1") {
-                blockVersion = BlockVersion::V1;
-            } else if (v == "v2" || v == "V2") {
-                blockVersion = BlockVersion::V2;
-            }
-        } else {
-            blockVersion = BlockVersion::V1;
-        }
-        initBlockchainUtils(blockVersion);
+        initBlockchainUtils();
         
         bool isValidate = false;
         if (allSettings.exists("validate")) {

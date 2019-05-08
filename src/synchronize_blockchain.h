@@ -70,11 +70,7 @@ private:
     
 };
 
-enum class BlockVersion {
-    V1, V2
-};
-
-void initBlockchainUtils(const BlockVersion &blockVersion);
+void initBlockchainUtils();
 
 }
 

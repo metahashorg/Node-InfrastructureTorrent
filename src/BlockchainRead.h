@@ -11,12 +11,6 @@ struct TransactionInfo;
 struct BlockInfo;
 class PrivateKey;
 
-enum class BlockVersionImpl {
-    NONE, V1, V2
-};
-
-extern BlockVersionImpl BLOCK_VERSION;
-
 /**
  *c Возвращает размер файла до записи в него
  */

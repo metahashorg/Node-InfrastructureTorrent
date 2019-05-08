@@ -15,19 +15,10 @@ using namespace common;
 
 namespace torrent_node_lib {
 
-void initBlockchainUtils(const BlockVersion &blockVersion) {
-    isInitialized = true;
+void initBlockchainUtils() {
     initBlockchainUtilsImpl();
     
-    //initializeIsVirtualMachine();
-    
-    if (blockVersion == BlockVersion::V1) {
-        BLOCK_VERSION = BlockVersionImpl::V1;
-    } else if (blockVersion == BlockVersion::V2) {
-        BLOCK_VERSION = BlockVersionImpl::V2;
-    } else {
-        throwErr("Incorrect block version");
-    }
+    isInitialized = true;
 }
 
 Sync::Sync(const std::string& folderPath, const LevelDbOptions& leveldbOpt, const CachesOptions& cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt)

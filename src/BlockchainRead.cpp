@@ -23,18 +23,18 @@ namespace torrent_node_lib {
 
 using SizeTransactinType = uint64_t;
 
-BlockVersionImpl BLOCK_VERSION = BlockVersionImpl::NONE;
-
 const size_t BLOCK_HEADER_SIZE = 3*sizeof(uint64_t)+64;
 
 void openFile(std::ifstream &file, const std::string &fileName) {
     CHECK(!fileName.empty(), "Empty file name");
     file.open(fileName.c_str(), std::ios::ate|std::ios::in|std::ios::binary);
+    CHECK(file.is_open(), "File " + fileName + " not opened");
 }
 
 void openFile(std::ofstream& file, const std::string& fileName) {
     CHECK(!fileName.empty(), "Empty file name");
     file.open(fileName.c_str(), std::ios::app|std::ios::binary);
+    CHECK(file.is_open(), "File " + fileName + " not opened");
 }
 
 void flushFile(std::ifstream& file, const std::string& fileName) {
@@ -161,21 +161,12 @@ static uint64_t readVarInt(const char *&cur_pos, const char *end_pos) {
 }
 
 static SizeTransactinType getSizeTransaction(std::ifstream &ifile) {
-    if (BLOCK_VERSION == BlockVersionImpl::V1) {
-        std::vector<char> fh_buff(sizeof(SizeTransactinType), 0);
-        ifile.read(fh_buff.data(), fh_buff.size());
-        const SizeTransactinType sizeTx = *(const unsigned char*)(fh_buff.data());
-        return sizeTx;
-    } else if (BLOCK_VERSION == BlockVersionImpl::V2) {
-        const size_t max_varint_size = sizeof(uint64_t) + sizeof(uint8_t);
-        std::vector<char> fh_buff(max_varint_size, 0);
-        ifile.read(fh_buff.data(), fh_buff.size());
-        const char *curPos = fh_buff.data();
-        const SizeTransactinType sizeTx = readVarInt(curPos, fh_buff.data() + fh_buff.size());
-        return sizeTx;
-    } else {
-        throwErr("Unsupported block type");
-    }
+    const size_t max_varint_size = sizeof(uint64_t) + sizeof(uint8_t);
+    std::vector<char> fh_buff(max_varint_size, 0);
+    ifile.read(fh_buff.data(), fh_buff.size());
+    const char *curPos = fh_buff.data();
+    const SizeTransactinType sizeTx = readVarInt(curPos, fh_buff.data() + fh_buff.size());
+    return sizeTx;
 }
 
 struct PrevTransactionSignHelper {
@@ -185,9 +176,6 @@ struct PrevTransactionSignHelper {
 };
 
 static bool isSignBlockTx(const TransactionInfo &txInfo, const PrevTransactionSignHelper &helper) {
-    if (BLOCK_VERSION != BlockVersionImpl::V2) {
-        return false;
-    }
     if (!helper.isPrevSign) {
         return false;
     }
@@ -195,8 +183,6 @@ static bool isSignBlockTx(const TransactionInfo &txInfo, const PrevTransactionSi
 }
 
 static std::pair<SizeTransactinType, const char*> readTransactionInfo(const char *cur_pos, const char *end_pos, TransactionInfo &txInfo, bool isParseTx, bool isSaveAllTx, const PrevTransactionSignHelper &helper, bool isValidate) {    
-    CHECK(BLOCK_VERSION != BlockVersionImpl::NONE, "Block version not set");
-    
     const char * tx_start = nullptr;
     const char * const allTxStart = cur_pos;
     
@@ -204,157 +190,108 @@ static std::pair<SizeTransactinType, const char*> readTransactionInfo(const char
     SizeTransactinType tx_size = 0;
     SizeTransactinType tx_hash_size = 0;
     const char *endClearTx = nullptr;
-    if (BLOCK_VERSION == BlockVersionImpl::V1) {
-        tx_size = *(const unsigned char*)(cur_pos);
-        tx_hash_size = tx_size;
-        cur_pos++;
-        if (tx_size == 0) {
-            return std::make_pair(0, cur_pos);
+    tx_size = readVarInt(cur_pos, end_pos);
+    tx_hash_size = tx_size;
+    if (tx_size == 0) {
+        return std::make_pair(0, cur_pos);
+    }
+    CHECK(cur_pos + tx_size <= end_pos, "Out of the array");
+    end_pos = cur_pos + tx_size;
+    if (!isParseTx) {
+        return std::make_pair(tx_size, end_pos);
+    }
+    
+    tx_start = cur_pos;
+    
+    const size_t toadr_size = 25;
+    CHECK(cur_pos + toadr_size <= end_pos, "Out of the array");
+    txInfo.toAddress = Address(cur_pos, cur_pos + toadr_size);
+    cur_pos += toadr_size;
+    
+    txInfo.value = readVarInt(cur_pos, end_pos);
+    txInfo.fees = readVarInt(cur_pos, end_pos);
+    txInfo.nonce = readVarInt(cur_pos, end_pos);
+    const uint64_t dataSize = readVarInt(cur_pos, end_pos);
+    txInfo.data = std::vector<unsigned char>(cur_pos, cur_pos + dataSize);
+    cur_pos += dataSize;
+    
+    if (dataSize > 0) {
+        if (dataSize == 9 && txInfo.data[0] == 1) {
+            isBlockedFrom = true;
+        } else if (txInfo.data[0] == '{' && txInfo.data[txInfo.data.size() - 1] == '}') {
+            rapidjson::Document doc;
+            const rapidjson::ParseResult pr = doc.Parse((const char*)txInfo.data.data(), txInfo.data.size());
+            if (pr) { // Здесь специально стоят if-ы вместо чеков, чтобы не крашится, если пользователь захочет послать какую-нибудь фигню
+                if (doc.HasMember("method") && doc["method"].IsString()) {
+                    const std::string method = doc["method"].GetString();
+                    if (method == "delegate" || method == "undelegate") {
+                        TransactionInfo::DelegateInfo delegateInfo;
+                        
+                        delegateInfo.isDelegate = method == "delegate";
+                        if (delegateInfo.isDelegate) {
+                            if (doc.HasMember("params") && doc["params"].IsObject()) {
+                                const auto &paramsJson = doc["params"];
+                                if (paramsJson.HasMember("value") && paramsJson["value"].IsString()) {
+                                    try {
+                                        delegateInfo.value = std::stoull(paramsJson["value"].GetString());
+                                        txInfo.delegate = delegateInfo;
+                                    } catch (...) {
+                                        // ignore
+                                    }
+                                }                               
+                            }
+                        } else {
+                            txInfo.delegate = delegateInfo;
+                        }
+                    }
+                }
+            }
         }
-        CHECK(cur_pos + tx_size <= end_pos, "Out of the array");
-        end_pos = cur_pos + tx_size;
-        if (!isParseTx) {
-            return std::make_pair(tx_size, end_pos);
-        }
+    }
+    
+    if (txInfo.toAddress.isScriptAddress()) {
+        TransactionInfo::ScriptInfo scriptInfo;
+        scriptInfo.isInitializeScript = false;
+        txInfo.scriptInfo = scriptInfo;
         
-        tx_start = cur_pos;
-
-        CHECK(cur_pos + sizeof(uint8_t) <= end_pos, "Out of the array");
-        const uint8_t toadr_size = *cur_pos;
-        cur_pos++;
-        CHECK(cur_pos + toadr_size <= end_pos, "Out of the array");
-        txInfo.toAddress = Address(cur_pos, cur_pos + toadr_size);
-        cur_pos += toadr_size;
-        
-        CHECK(cur_pos + sizeof(int64_t) <= end_pos, "Out of the array");
-        txInfo.value = *((int64_t * )cur_pos);
-        cur_pos += sizeof(int64_t);
-        
-        endClearTx = cur_pos;
-        
-        CHECK(cur_pos + sizeof(uint8_t) <= end_pos, "Out of the array");
-        const uint8_t sign_size = *cur_pos;
-        cur_pos++;
-        CHECK(cur_pos + sign_size <= end_pos, "Out of the array");
-        const std::vector<char> sign(cur_pos, cur_pos + sign_size);
-        cur_pos += sign_size;
-        txInfo.sign = sign;
-        
-        CHECK(cur_pos + sizeof(uint8_t) <= end_pos, "Out of the array");
-        const uint8_t pub_key_size = *cur_pos;
-        cur_pos++;
-        if (pub_key_size != 0) {
-            CHECK(cur_pos + pub_key_size <= end_pos, "Out of the array");
-            txInfo.pubKey = std::vector<unsigned char>(cur_pos, cur_pos + pub_key_size);
-        } else {
-            txInfo.fromAddress.setEmpty();
-        }
-        
-        cur_pos += pub_key_size;
-    } else if (BLOCK_VERSION == BlockVersionImpl::V2){
-        tx_size = readVarInt(cur_pos, end_pos);
-        tx_hash_size = tx_size;
-        if (tx_size == 0) {
-            return std::make_pair(0, cur_pos);
-        }
-        CHECK(cur_pos + tx_size <= end_pos, "Out of the array");
-        end_pos = cur_pos + tx_size;
-        if (!isParseTx) {
-            return std::make_pair(tx_size, end_pos);
-        }
-        
-        tx_start = cur_pos;
-        
-        const size_t toadr_size = 25;
-        CHECK(cur_pos + toadr_size <= end_pos, "Out of the array");
-        txInfo.toAddress = Address(cur_pos, cur_pos + toadr_size);
-        cur_pos += toadr_size;
-        
-        txInfo.value = readVarInt(cur_pos, end_pos);
-        txInfo.fees = readVarInt(cur_pos, end_pos);
-        txInfo.nonce = readVarInt(cur_pos, end_pos);
-        const uint64_t dataSize = readVarInt(cur_pos, end_pos);
-        txInfo.data = std::vector<unsigned char>(cur_pos, cur_pos + dataSize);
-        cur_pos += dataSize;
+        txInfo.isModuleNotSet = true;
         
         if (dataSize > 0) {
-            if (dataSize == 9 && txInfo.data[0] == 1) {
-                isBlockedFrom = true;
-            } else if (txInfo.data[0] == '{' && txInfo.data[txInfo.data.size() - 1] == '}') {
+            if (txInfo.data[0] == '{' && txInfo.data[txInfo.data.size() - 1] == '}') {
                 rapidjson::Document doc;
                 const rapidjson::ParseResult pr = doc.Parse((const char*)txInfo.data.data(), txInfo.data.size());
                 if (pr) { // Здесь специально стоят if-ы вместо чеков, чтобы не крашится, если пользователь захочет послать какую-нибудь фигню
                     if (doc.HasMember("method") && doc["method"].IsString()) {
                         const std::string method = doc["method"].GetString();
-                        if (method == "delegate" || method == "undelegate") {
-                            TransactionInfo::DelegateInfo delegateInfo;
-                            
-                            delegateInfo.isDelegate = method == "delegate";
-                            if (delegateInfo.isDelegate) {
-                                if (doc.HasMember("params") && doc["params"].IsObject()) {
-                                    const auto &paramsJson = doc["params"];
-                                    if (paramsJson.HasMember("value") && paramsJson["value"].IsString()) {
-                                        try {
-                                            delegateInfo.value = std::stoull(paramsJson["value"].GetString());
-                                            txInfo.delegate = delegateInfo;
-                                        } catch (...) {
-                                            // ignore
-                                        }
-                                    }                               
-                                }
-                            } else {
-                                txInfo.delegate = delegateInfo;
-                            }
+                        if (method == "compile" || method == "run") {
+                            txInfo.scriptInfo.value().isInitializeScript = method == "compile";
                         }
                     }
                 }
             }
         }
-        
-        if (txInfo.toAddress.isScriptAddress()) {
-            TransactionInfo::ScriptInfo scriptInfo;
-            scriptInfo.isInitializeScript = false;
-            txInfo.scriptInfo = scriptInfo;
-            
-            if (dataSize > 0) {
-                if (txInfo.data[0] == '{' && txInfo.data[txInfo.data.size() - 1] == '}') {
-                    rapidjson::Document doc;
-                    const rapidjson::ParseResult pr = doc.Parse((const char*)txInfo.data.data(), txInfo.data.size());
-                    if (pr) { // Здесь специально стоят if-ы вместо чеков, чтобы не крашится, если пользователь захочет послать какую-нибудь фигню
-                        if (doc.HasMember("method") && doc["method"].IsString()) {
-                            const std::string method = doc["method"].GetString();
-                            if (method == "compile" || method == "run") {
-                                txInfo.scriptInfo.value().isInitializeScript = method == "compile";
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        endClearTx = cur_pos;
-        
-        const size_t signSize = readVarInt(cur_pos, end_pos);
-        CHECK(cur_pos + signSize <= end_pos, "Out of the array");
-        txInfo.sign = std::vector<char>(cur_pos, cur_pos + signSize);
-        cur_pos += signSize;
-        
-        const size_t pubkeySize = readVarInt(cur_pos, end_pos);
-        CHECK(cur_pos + pubkeySize <= end_pos, "Out of the array");
-        if (pubkeySize != 0) {
-            txInfo.pubKey = std::vector<unsigned char>(cur_pos, cur_pos + pubkeySize);
-            cur_pos += pubkeySize;
-        } else {
-            txInfo.fromAddress.setEmpty();
-        }
-        
-        if (cur_pos < end_pos) {
-            auto *saveCurPos = cur_pos;
-            txInfo.intStatus = readVarInt(cur_pos, end_pos);
-            tx_hash_size -= std::distance(saveCurPos, cur_pos);
-        }
+    }
+    
+    endClearTx = cur_pos;
+    
+    const size_t signSize = readVarInt(cur_pos, end_pos);
+    CHECK(cur_pos + signSize <= end_pos, "Out of the array");
+    txInfo.sign = std::vector<char>(cur_pos, cur_pos + signSize);
+    cur_pos += signSize;
+    
+    const size_t pubkeySize = readVarInt(cur_pos, end_pos);
+    CHECK(cur_pos + pubkeySize <= end_pos, "Out of the array");
+    if (pubkeySize != 0) {
+        txInfo.pubKey = std::vector<unsigned char>(cur_pos, cur_pos + pubkeySize);
+        cur_pos += pubkeySize;
     } else {
-        throwErr("Unsupported block type");
+        txInfo.fromAddress.setEmpty();
+    }
+    
+    if (cur_pos < end_pos) {
+        auto *saveCurPos = cur_pos;
+        txInfo.intStatus = readVarInt(cur_pos, end_pos);
+        tx_hash_size -= std::distance(saveCurPos, cur_pos);
     }
     
     const char* const allTxEnd = cur_pos;
