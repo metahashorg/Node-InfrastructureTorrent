@@ -118,21 +118,21 @@ find_library(SSL_LIB_1 NAMES libcrypto.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3r
 find_library(SSL_LIB_2 NAMES libssl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/openssl/lib/)
 find_library(LIBCONFIG NAMES libconfig++.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/lib/)
 
+find_library(CONFIG1_LIB NAMES libconfig++.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/lib/)
+find_library(CONFIG2_LIB NAMES libconfig.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/lib/)
+
 find_library(LZ4_LIB NAMES lib_lz4.a HINTS ../3rdParty/lz4/lib/)
 
 find_package(MHSupport)
 
 set(PROJECT_LIBS
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${OPENSSL_LIBRARIES}
-    #${Boost_LIBRARIES}
-    
     mh_mhd
     mh_xxhash
     mh_libevent
     ${LZ4_LIB}
     
-    ${LIBCONFIG}
+    ${CONFIG1_LIB}
+    ${CONFIG2_LIB}
     
     stdc++fs.a
     
@@ -143,17 +143,22 @@ set(PROJECT_LIBS
     ${SECP_LIB}
     ${SSL_LIB_2}
     ${SSL_LIB_1}
+    
     gmp
         
     dl
         
-    event
+    event.a
+    ev.a
     microhttpd.a
     gcrypt
     gnutls
-    uriparser
+    uriparser.a
+    tcmalloc
     
     curl
+    
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 
 add_library(${PROJECT_NAME}_lib STATIC ${LIBRARY_HEADERS} ${LIBRARY_SOURCES})
