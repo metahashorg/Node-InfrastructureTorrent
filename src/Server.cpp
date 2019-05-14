@@ -225,6 +225,9 @@ static std::string getBlocks(const RequestId &requestId, const rapidjson::Docume
         }
     } else {
         const int64_t maxBlockNum = sync.getBlockchain().countBlocks();
+        if (countBlocks == 0) {
+            countBlocks = maxBlockNum;
+        }
         for (int64_t i = beginBlock; i < std::min(maxBlockNum + 1, beginBlock + countBlocks); i++) {
             processBlock(i);
         }
