@@ -9,6 +9,7 @@ This repository contains the torrent node source code written in C++. There are 
 cmake > 3.8
 gcc > 8.0
 libevent 2.1.8
+liburiparser 0.7.5
 ```
 
 ## Build
@@ -21,7 +22,7 @@ sudo apt install software-properties-common
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt update
 
-sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt11-dev libgnutls28-dev liburiparser-dev
+sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt11-dev libgnutls28-dev libev-dev libgoogle-perftools-dev
     
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 sudo update-alternatives --config gcc
@@ -71,8 +72,11 @@ sudo make install
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/Node-InfrastructureTorrent torrent_node
-cd torrent_node/build
-./build.sh
+cd torrent_node
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+sudo make install
 ```
 
 ## Update torrent to recent version
