@@ -191,6 +191,8 @@ static std::string getBlocks(const RequestId &requestId, const rapidjson::Docume
     if (jsonParams.HasMember("beginBlock") && jsonParams["beginBlock"].IsInt()) {
         beginBlock = jsonParams["beginBlock"].GetInt();
     }
+    
+    CHECK_USER(countBlocks <= 1000, "Too many blocks");
 
     BlockTypeInfo type = BlockTypeInfo::Simple;
     if (jsonParams.HasMember("type") && jsonParams["type"].IsString()) {
@@ -225,9 +227,6 @@ static std::string getBlocks(const RequestId &requestId, const rapidjson::Docume
         }
     } else {
         const int64_t maxBlockNum = sync.getBlockchain().countBlocks();
-        if (countBlocks == 0) {
-            countBlocks = maxBlockNum;
-        }
         for (int64_t i = beginBlock; i < std::min(maxBlockNum + 1, beginBlock + countBlocks); i++) {
             processBlock(i);
         }
@@ -250,6 +249,7 @@ std::string getBlockDumps(const rapidjson::Document &doc, const RequestId &reque
     }
     CHECK_USER(jsonParams.HasMember(nameParam.c_str()) && jsonParams[nameParam.c_str()].IsArray(), "hashes field not found");
     const auto &jsonVals = jsonParams[nameParam.c_str()].GetArray();
+    CHECK_USER(jsonVals.Size() <= 1000, "Too many blocks");
     std::vector<std::string> result;
     for (const auto &jsonVal: jsonVals) {
         const T &hashOrNumber = getJsonField<T>(jsonVal);
