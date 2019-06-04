@@ -7,6 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/leveldb/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/rapidjson/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/libconfig/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/lz4/include/)
+include_directories(${SNIPER_INCLUDE_DIRS})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../common_utils/")
 include(common_utils)
@@ -123,12 +124,9 @@ find_library(CONFIG2_LIB NAMES libconfig.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../
 
 find_library(LZ4_LIB NAMES lib_lz4.a HINTS ../3rdParty/lz4/lib/)
 
-find_package(MHSupport)
+find_library(FMT_LIB NAMES libfmt.a HINTS /usr/local/lib)
 
 set(PROJECT_LIBS
-    mh_mhd
-    mh_xxhash
-    mh_libevent
     ${LZ4_LIB}
     
     ${CONFIG1_LIB}
@@ -140,10 +138,12 @@ set(PROJECT_LIBS
     ${LEVELDB}
     ${LEVELDB_SNAPPY}
         
+    ${SNIPER_LIBRARIES}
+
     ${SECP_LIB}
     ${SSL_LIB_2}
     ${SSL_LIB_1}
-    
+
     gmp
 
     dl
@@ -156,8 +156,10 @@ set(PROJECT_LIBS
     tcmalloc
 
     curl
-    
+
     ${CMAKE_THREAD_LIBS_INIT}
+
+    ${FMT_LIB}
 )
 
 add_library(${PROJECT_NAME}_lib STATIC ${LIBRARY_HEADERS} ${LIBRARY_SOURCES})

@@ -6,9 +6,9 @@
 #include <atomic>
 #include <memory>
 
-namespace mh {
-namespace libevent {
-class LibEvent;
+namespace sniper {
+namespace http {
+class SyncClient;
 }
 }
 
@@ -20,7 +20,7 @@ public:
         
         LibEventInstance();
         
-        LibEventInstance(std::unique_ptr<mh::libevent::LibEvent> &&libevent);
+        LibEventInstance(std::unique_ptr<sniper::http::SyncClient> &&libevent);
                 
         LibEventInstance(LibEventInstance &&second);
         
@@ -28,7 +28,7 @@ public:
         
         LibEventInstance& operator=(LibEventInstance &&second);
                 
-        std::unique_ptr<mh::libevent::LibEvent> libevent;
+        std::unique_ptr<sniper::http::SyncClient> libevent;
         
     private:
         

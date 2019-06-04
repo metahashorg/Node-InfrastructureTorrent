@@ -11,4 +11,10 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libev-4.25/lib/include/)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libev-4.25/lib/lib/)
+
+set(libsniper "std" "log" "cache" "xxhash" "net" "strings" "pico" "event" "http" "mhd")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty)
+
 add_subdirectory(src)

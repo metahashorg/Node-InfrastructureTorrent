@@ -1,0 +1,3 @@
+[submodule "3rdParty/libsniper"]
+	path = 3rdParty/libsniper
+	url = git@github.com:metahashorg/libsniper.git

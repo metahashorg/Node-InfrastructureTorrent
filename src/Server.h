@@ -1,7 +1,7 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include <mh/mhd/MHD.h>
+#include <sniper/mhd/MHD.h>
 
 #include <string>
 #include <atomic>
@@ -10,7 +10,7 @@ namespace torrent_node_lib {
 class Sync;
 }
 
-class Server: public mh::mhd::MHD {
+class Server: public sniper::mhd::MHD {
 public:
     Server(const torrent_node_lib::Sync &sync, int port, std::atomic<int> &countRunningThreads) 
         : sync(sync)
