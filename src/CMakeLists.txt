@@ -133,7 +133,7 @@ set(PROJECT_LIBS
     
     ${CONFIG1_LIB}
     ${CONFIG2_LIB}
-    
+
     stdc++fs.a
     
     ${LEVELDB_MEMENV}
@@ -145,17 +145,16 @@ set(PROJECT_LIBS
     ${SSL_LIB_1}
     
     gmp
-        
+
     dl
         
     event.a
-    ev.a
     microhttpd.a
     gcrypt
     gnutls
     uriparser.a
     tcmalloc
-    
+
     curl
     
     ${CMAKE_THREAD_LIBS_INIT}
