@@ -6,6 +6,8 @@
 #include <string>
 #include <atomic>
 
+#include "utils/SmallStatistic.h"
+
 namespace torrent_node_lib {
 class Sync;
 }
@@ -35,6 +37,8 @@ private:
     
     std::atomic<bool> isStoped;
         
+    SmallStatistic smallRequestStatistics;
+    
 };
 
 #endif // SERVER_H_

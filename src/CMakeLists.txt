@@ -92,6 +92,7 @@ set(LIBRARY_SOURCES
     utils/utils.cpp
     utils/benchmarks.cpp
     utils/compress.cpp
+    utils/SystemInfo.cpp
 )
 
 set(PROJECT_MAIN

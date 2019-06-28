@@ -26,6 +26,12 @@ enum class BlockTypeInfo {
 
 std::string genErrorResponse(const RequestId &requestId, int code, const std::string &error);
 
+std::string genStatusResponse(const RequestId &requestId, const std::string &version, const std::string &gitHash);
+
+std::string genStatisticResponse(const RequestId &requestId, size_t statistic, double proc, unsigned long long int memory, int connections);
+
+std::string genStatisticResponse(size_t statistic);
+
 std::string blockHeaderToJson(const RequestId &requestId, const torrent_node_lib::BlockHeader &bh, const std::optional<std::reference_wrapper<const torrent_node_lib::BlockHeader>> &nextBlock, bool isFormat, BlockTypeInfo type, const JsonVersion &version);
 
 std::string genCountBlockJson(const RequestId &requestId, size_t countBlocks, bool isFormat, const JsonVersion &version);

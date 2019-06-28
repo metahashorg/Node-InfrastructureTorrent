@@ -21,6 +21,7 @@
 #include "generate_json.h"
 
 #include "stopProgram.h"
+#include "utils/SystemInfo.h"
 
 using namespace common;
 using namespace torrent_node_lib;
@@ -297,23 +298,13 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
     const std::string &method = mhd_req.method;
     RequestId requestId;
     
+    smallRequestStatistics.addStatistic(1, ::now(), 1min);
+    
     std::string func;
     try {
         std::string jsonRequest;
         
-        if (url == "/status") {            
-            rapidjson::Document jsonDoc(rapidjson::kObjectType);
-            auto &allocator = jsonDoc.GetAllocator();
-            jsonDoc.AddMember("result", strToJson("ok", allocator), allocator);
-            jsonDoc.AddMember("version", strToJson(VERSION, allocator), allocator);
-            jsonDoc.AddMember("git_hash", strToJson(g_GIT_SHA1, allocator), allocator);
-            //jsonDoc.AddMember("is_virtual", sync.isVirtualMachine(), allocator);
-            mhd_resp.data = jsonToString(jsonDoc, false);
-            mhd_resp.code = HTTP_STATUS_OK;
-            
-            LOGDEBUG << "get status ok";
-            return true;
-        } else if (url == "/" + SIGN_TEST_STRING) {
+        if (url == "/" + SIGN_TEST_STRING) {
             if (!mhd_req.post.empty()) {
                 mhd_resp.data = signTestString(mhd_req.post, false, requestId, sync);
                 mhd_resp.code = HTTP_STATUS_OK;
@@ -330,8 +321,10 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
         }
                 
         rapidjson::Document doc;
-        const rapidjson::ParseResult pr = doc.Parse(jsonRequest.c_str());
-        CHECK(pr, "rapidjson parse error. Data: " + jsonRequest);
+        if (!jsonRequest.empty()) {
+            const rapidjson::ParseResult pr = doc.Parse(jsonRequest.c_str());
+            CHECK(pr, "rapidjson parse error. Data: " + jsonRequest);
+        }
         
         if (url.size() > 1) {
             func = url.substr(1);        
@@ -366,7 +359,28 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
         
         std::string response;
         
-        if (func == GET_BLOCK_BY_HASH) {
+        if (func == "status") {
+            response = genStatusResponse(requestId, VERSION, g_GIT_SHA1);
+        } else if (func == "get-statistic") {
+            const SmallStatisticElement smallStat = smallRequestStatistics.getStatistic();
+            response = genStatisticResponse(smallStat.stat);
+        } else if (func == "get-statistic2") {
+            const auto &jsonParams = get<JsonObject>(doc, "params");
+            
+            const std::string &pubkey = get<std::string>(jsonParams, "pubkey");
+            const std::string &sign = get<std::string>(jsonParams, "sign");
+            const std::string &timestamp = get<std::string>(jsonParams, "timestamp");
+            const long long timestampLong = std::stoll(timestamp);
+            
+            const auto now = nowSystem();
+            const long long nowTimestamp = getTimestampMs(now);
+            CHECK_USER(std::abs(nowTimestamp - timestampLong) <= milliseconds(5s).count(), "Timestamp is out");
+            
+            CHECK_USER(sync.verifyTechnicalAddressSign(timestamp, fromHex(sign), fromHex(pubkey)), "Incorrect signature");
+            
+            const SmallStatisticElement smallStat = smallRequestStatistics.getStatistic();
+            response = genStatisticResponse(requestId, smallStat.stat, getProcLoad(), getTotalSystemMemory(), getOpenedConnections());
+        } else if (func == GET_BLOCK_BY_HASH) {
             response = getBlock<std::string>(requestId, doc, "hash", sync, isFormatJson, jsonVersion);
         } else if (func == GET_BLOCK_BY_NUMBER) {
             response = getBlock<size_t>(requestId, doc, "number", sync, isFormatJson, jsonVersion);

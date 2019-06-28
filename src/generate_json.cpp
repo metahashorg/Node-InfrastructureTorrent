@@ -52,6 +52,38 @@ std::string genErrorResponse(const RequestId &requestId, int code, const std::st
     return jsonToString(jsonDoc, false);
 }
 
+std::string genStatusResponse(const RequestId &requestId, const std::string &version, const std::string &gitHash) {
+    rapidjson::Document jsonDoc(rapidjson::kObjectType);
+    auto &allocator = jsonDoc.GetAllocator();
+    addIdToResponse(requestId, jsonDoc, allocator);
+    
+    jsonDoc.AddMember("result", strToJson("ok", allocator), allocator);
+    jsonDoc.AddMember("version", strToJson(version, allocator), allocator);
+    jsonDoc.AddMember("git_hash", strToJson(gitHash, allocator), allocator);
+    return jsonToString(jsonDoc, false);
+}
+
+std::string genStatisticResponse(const RequestId &requestId, size_t statistic, double proc, unsigned long long int memory, int connections) {
+    rapidjson::Document jsonDoc(rapidjson::kObjectType);
+    auto &allocator = jsonDoc.GetAllocator();
+    addIdToResponse(requestId, jsonDoc, allocator);
+    
+    rapidjson::Value resultJson(rapidjson::kObjectType);
+    resultJson.AddMember("request_stat", statistic, allocator);
+    resultJson.AddMember("proc", proc, allocator);
+    resultJson.AddMember("memory", strToJson(std::to_string(memory), allocator), allocator);
+    resultJson.AddMember("connections", connections, allocator);
+    jsonDoc.AddMember("result", resultJson, allocator);
+    return jsonToString(jsonDoc, false);
+}
+
+std::string genStatisticResponse(size_t statistic) {
+    rapidjson::Document jsonDoc(rapidjson::kObjectType);
+    auto &allocator = jsonDoc.GetAllocator();
+    jsonDoc.AddMember("result", statistic, allocator);
+    return jsonToString(jsonDoc, false);
+}
+
 static rapidjson::Value blockHeaderToJson(const BlockHeader &bh, rapidjson::Document::AllocatorType &allocator, BlockTypeInfo type, const JsonVersion &version) {
     const bool isStringValue = version == JsonVersion::V2;
     
