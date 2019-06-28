@@ -184,7 +184,6 @@ void SyncImpl::saveBlockToLeveldb(const BlockInfo &bi) {
 
 void SyncImpl::synchronize(int countThreads) {
     this->countThreads = countThreads;
-    this->isSync = isSync;
     
     CHECK(isInitialized, "Not initialized");
     CHECK(modules[MODULE_BLOCK], "module " + MODULE_BLOCK_STR + " not set");
@@ -212,10 +211,12 @@ void SyncImpl::synchronize(int countThreads) {
         
         blockchain.clear();
         
-        const std::set<std::string> blocksRaw = getAllBlocks(leveldb);
-        for (const std::string &blockRaw: blocksRaw) {
-            BlockHeader bh = BlockHeader::deserialize(blockRaw);
-            blockchain.addWithoutCalc(bh);
+        {
+            const std::set<std::string> blocksRaw = getAllBlocks(leveldb);
+            for (const std::string &blockRaw: blocksRaw) {
+                BlockHeader bh = BlockHeader::deserialize(blockRaw);
+                blockchain.addWithoutCalc(bh);
+            }
         }
         
         if (!metadata.blockHash.empty()) {
