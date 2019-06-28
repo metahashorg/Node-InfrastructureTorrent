@@ -154,7 +154,6 @@ set(PROJECT_LIBS
     gcrypt
     gnutls
     uriparser.a
-    tcmalloc
 
     curl
 
