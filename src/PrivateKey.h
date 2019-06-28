@@ -40,6 +40,8 @@ struct BlockSignatureCheckResult {
     std::string address;
 };
 
+std::string getAddress(const std::vector<unsigned char> &pubkey);
+
 std::string makeFirstPartBlockSign(size_t blockSize);
 
 std::string makeBlockSign(const std::string &blockDump, const PrivateKey &privateKey);
@@ -51,6 +53,8 @@ std::string makeTestSign(const std::string &str, const PrivateKey &privateKey);
 std::string makeTestResultSign(const std::string &str, const PrivateKey &privateKey);
 
 void checkSignatureTest(const std::string &text, const std::string &str);
+
+bool verifySignature(const std::string &text, const std::vector<unsigned char> &sign, const std::vector<unsigned char> &pubkey);
 
 } // namespace torrent_node_lib
 

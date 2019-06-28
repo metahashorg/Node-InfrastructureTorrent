@@ -21,8 +21,8 @@ void initBlockchainUtils() {
     isInitialized = true;
 }
 
-Sync::Sync(const std::string& folderPath, const LevelDbOptions& leveldbOpt, const CachesOptions& cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt)
-    : impl(std::make_unique<SyncImpl>(folderPath, leveldbOpt, cachesOpt, getterBlocksOpt, signKeyName, testNodesOpt))
+Sync::Sync(const std::string& folderPath, const std::string &technicalAddress, const LevelDbOptions& leveldbOpt, const CachesOptions& cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt)
+    : impl(std::make_unique<SyncImpl>(folderPath, technicalAddress, leveldbOpt, cachesOpt, getterBlocksOpt, signKeyName, testNodesOpt))
 {}
 
 void Sync::setLeveldbOptScript(const LevelDbOptions &leveldbOptScript) {
@@ -63,6 +63,10 @@ void Sync::fillSignedTransactionsInBlock(BlockHeader& bh) const {
 
 std::string Sync::signTestString(const std::string &str, bool isHex) const {
     return impl->signTestString(str, isHex);
+}
+
+bool Sync::verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const {
+    return impl->verifyTechnicalAddressSign(binary, signature, pubkey);
 }
 
 Sync::~Sync() = default;

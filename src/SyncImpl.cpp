@@ -42,9 +42,10 @@ void SyncImpl::initialize(const std::string& folderPath, const GetterBlockOption
     }
 }
 
-SyncImpl::SyncImpl(const std::string& folderPath, const LevelDbOptions& leveldbOpt, const CachesOptions& cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt)
+SyncImpl::SyncImpl(const std::string& folderPath, const std::string &technicalAddress, const LevelDbOptions& leveldbOpt, const CachesOptions& cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt)
     : leveldb(leveldbOpt.writeBufSizeMb, leveldbOpt.isBloomFilter, leveldbOpt.isChecks, leveldbOpt.folderName, leveldbOpt.lruCacheMb)
     , caches(cachesOpt.maxCountElementsBlockCache, cachesOpt.maxCountElementsTxsCache, cachesOpt.macLocalCacheElements)
+    , technicalAddress(technicalAddress)
     , isValidate(getterBlocksOpt.isValidate)
     , testNodes(getterBlocksOpt.p2p, testNodesOpt.myIp, testNodesOpt.testNodesServer, testNodesOpt.defaultPortTorrent)
 {
@@ -180,6 +181,14 @@ void SyncImpl::saveBlockToLeveldb(const BlockInfo &bi) {
     batch.addFileMetadata(CroppedFileName(fi.filePos.fileName), fi.serialize());
     
     addBatch(batch, leveldb);
+}
+
+bool SyncImpl::verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const {
+    const bool res = verifySignature(binary, signature, pubkey);
+    if (!res) {
+        return false;
+    }
+    return technicalAddress == getAddress(pubkey);
 }
 
 void SyncImpl::synchronize(int countThreads) {

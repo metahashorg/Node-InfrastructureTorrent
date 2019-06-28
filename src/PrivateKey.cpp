@@ -119,6 +119,11 @@ std::string makeTestSign(const std::string &str, const PrivateKey &privateKey) {
     return res;
 }
 
+std::string getAddress(const std::vector<unsigned char> &pubkey) {
+    const std::string calculatedAddress = torrent_node_lib::get_address(pubkey);
+    return calculatedAddress;
+}
+
 std::string makeTestResultSign(const std::string &str, const PrivateKey &privateKey) {
     const std::vector<unsigned char> sign = privateKey.sign(str);
     return toHex(sign);
@@ -133,6 +138,10 @@ void checkSignatureTest(const std::string &text, const std::string &str) {
     CHECK(crypto_check_sign_data(std::vector<char>(sign.begin(), sign.end()), std::vector<unsigned char>(pubkey.begin(), pubkey.end()), (const unsigned char*)text.data(), text.size()), "Not validate");
     const std::string calculatedAddress = makeAddressFromSecpKey(std::vector<unsigned char>(pubkey.begin(), pubkey.end()));
     CHECK(calculatedAddress == address, "Not validate");
+}
+
+bool verifySignature(const std::string &text, const std::vector<unsigned char> &sign, const std::vector<unsigned char> &pubkey) {
+    return crypto_check_sign_data(std::vector<char>(sign.begin(), sign.end()), pubkey, (const unsigned char*)text.data(), text.size());
 }
 
 } // namespace torrent_node_lib

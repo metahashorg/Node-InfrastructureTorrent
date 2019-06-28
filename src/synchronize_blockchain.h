@@ -36,7 +36,7 @@ class SyncImpl;
 class Sync: public common::no_copyable, common::no_moveable {   
 public:
     
-    Sync(const std::string &folderPath, const LevelDbOptions &leveldbOpt, const CachesOptions &cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt);
+    Sync(const std::string &folderPath, const std::string &technicalAddress, const LevelDbOptions &leveldbOpt, const CachesOptions &cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt);
        
     void setLeveldbOptScript(const LevelDbOptions &leveldbOptScript);
     
@@ -44,6 +44,8 @@ public:
     
     const BlockChainReadInterface & getBlockchain() const;
     
+    bool verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const;
+
     ~Sync();
     
 public:

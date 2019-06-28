@@ -32,7 +32,7 @@ struct NodeTestExtendedStat;
 class SyncImpl {  
 public:
     
-    SyncImpl(const std::string &folderPath, const LevelDbOptions &leveldbOpt, const CachesOptions &cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt);
+    SyncImpl(const std::string &folderPath, const std::string &technicalAddress, const LevelDbOptions &leveldbOpt, const CachesOptions &cachesOpt, const GetterBlockOptions &getterBlocksOpt, const std::string &signKeyName, const TestNodesOptions &testNodesOpt);
        
     const BlockChainReadInterface & getBlockchain() const {
         return blockchain;
@@ -64,6 +64,8 @@ public:
 
     std::string signTestString(const std::string &str, bool isHex) const;
     
+    bool verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const;
+
 private:
    
     void saveTransactions(BlockInfo &bi, const std::string &binaryDump, bool saveBlockToFile);
@@ -73,7 +75,7 @@ private:
     void saveSignBlockTransactionsToHeader(BlockInfo &bi);
 
     void saveBlockToLeveldb(const BlockInfo &bi);
-    
+
 private:
     
     LevelDb leveldb;
@@ -86,6 +88,8 @@ private:
     
     BlockChain blockchain;
         
+    const std::string technicalAddress;
+
     int countThreads;
     bool isSync;
         

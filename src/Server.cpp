@@ -365,11 +365,16 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
             const SmallStatisticElement smallStat = smallRequestStatistics.getStatistic();
             response = genStatisticResponse(smallStat.stat);
         } else if (func == "get-statistic2") {
-            const auto &jsonParams = get<JsonObject>(doc, "params");
+            CHECK_USER(doc.HasMember("params") && doc["params"].IsObject(), "params field not found");
+            const auto &jsonParams = doc["params"];
             
-            const std::string &pubkey = get<std::string>(jsonParams, "pubkey");
-            const std::string &sign = get<std::string>(jsonParams, "sign");
-            const std::string &timestamp = get<std::string>(jsonParams, "timestamp");
+            CHECK_USER(jsonParams.HasMember("pubkey") && jsonParams["pubkey"].IsString(), "pubkey field not found");
+            const std::string &pubkey = jsonParams["pubkey"].GetString();
+            CHECK_USER(jsonParams.HasMember("sign") && jsonParams["sign"].IsString(), "sign field not found");
+            const std::string &sign = jsonParams["sign"].GetString();
+            CHECK_USER(jsonParams.HasMember("timestamp") && jsonParams["timestamp"].IsString(), "timestamp field not found");
+            const std::string &timestamp = jsonParams["timestamp"].GetString();
+
             const long long timestampLong = std::stoll(timestamp);
             
             const auto now = nowSystem();
