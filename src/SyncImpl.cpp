@@ -24,7 +24,7 @@ using namespace common;
 
 namespace torrent_node_lib {
     
-const static std::string VERSION_DB = "v3.4";
+const static std::string VERSION_DB = "v3.5";
     
 bool isInitialized = false;
 
