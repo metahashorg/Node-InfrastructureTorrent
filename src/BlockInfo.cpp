@@ -266,14 +266,6 @@ std::string BlockHeader::serialize() const {
     res += serializeString(std::string(senderPubkey.begin(), senderPubkey.end()));
     res += serializeString(std::string(senderAddress.begin(), senderAddress.end()));
     
-    std::vector<char> buffer;
-    for (const TransactionInfo &tx: blockSignatures) {
-        res += serializeInt<unsigned char>('s');
-        
-        buffer.clear();
-        tx.serialize(buffer);
-        res.insert(res.end(), buffer.begin(), buffer.end());
-    }
     return res;
 }
 
@@ -299,16 +291,15 @@ BlockHeader BlockHeader::deserialize(const std::string& raw) {
     const std::string senderAddress = deserializeString(raw, from);
     result.senderAddress = std::vector<unsigned char>(senderAddress.begin(), senderAddress.end());
     
-    while (from < raw.size()) {
-        const unsigned char nextType = deserializeInt<unsigned char>(raw, from);
-        if (nextType == 's') {
-            const TransactionInfo info = TransactionInfo::deserialize(raw, from);
-            result.blockSignatures.emplace_back(info);
-        } else {
-            throwErr("Incorrect type " + std::to_string(nextType));
-        }
-    }
     return result;
+}
+
+std::vector<TransactionInfo> BlockInfo::getBlockSignatures() const {
+    std::vector<TransactionInfo> signatures;
+    std::copy_if(txs.begin(), txs.end(), std::back_inserter(signatures), [](const TransactionInfo &info) {
+        return info.isSignBlockTx;
+    });
+    return signatures;
 }
 
 std::string BlocksMetadata::serialize() const {

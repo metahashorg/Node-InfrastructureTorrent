@@ -131,7 +131,11 @@ std::string getBlock(const RequestId &requestId, const rapidjson::Document &doc,
     }
     
     BlockHeader nextBh = sync.getBlockchain().getBlock(*bh.blockNumber + 1);
-    sync.fillSignedTransactionsInBlock(nextBh);
+    std::vector<TransactionInfo> signs;
+    /*if (nextBh.blockNumber.has_value()) {
+        const BlockInfo nextBi = sync.getFullBlock(nextBh, 0, 20);
+        signs = nextBi.getBlockSignatures();
+    }*/
     if (type == BlockTypeInfo::Simple || type == BlockTypeInfo::ForP2P || type == BlockTypeInfo::Small) {
         return blockHeaderToJson(requestId, bh, nextBh, isFormat, type, version);
     } else {

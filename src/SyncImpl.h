@@ -57,9 +57,7 @@ public:
     std::string getBlockDump(const BlockHeader &bh, size_t fromByte, size_t toByte, bool isHex, bool isSign) const;
     
     size_t getKnownBlock() const;
-    
-    void fillSignedTransactionsInBlock(BlockHeader &bh) const;
-        
+
     size_t getLastBlockDay() const;
 
     std::string signTestString(const std::string &str, bool isHex) const;
@@ -72,8 +70,6 @@ private:
     
     void filterTransactionsToSave(BlockInfo &bi);
     
-    void saveSignBlockTransactionsToHeader(BlockInfo &bi);
-
     void saveBlockToLeveldb(const BlockInfo &bi);
 
 private:

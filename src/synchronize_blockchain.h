@@ -61,9 +61,7 @@ public:
     std::vector<TransactionInfo> getLastTxs() const;
 
     size_t getKnownBlock() const;
-    
-    void fillSignedTransactionsInBlock(BlockHeader &bh) const;
-        
+
     std::string signTestString(const std::string &str, bool isHex) const;
     
 private:

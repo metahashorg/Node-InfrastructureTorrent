@@ -57,10 +57,6 @@ const BlockChainReadInterface & Sync::getBlockchain() const {
     return impl->getBlockchain();
 }
 
-void Sync::fillSignedTransactionsInBlock(BlockHeader& bh) const {
-    impl->fillSignedTransactionsInBlock(bh);
-}
-
 std::string Sync::signTestString(const std::string &str, bool isHex) const {
     return impl->signTestString(str, isHex);
 }

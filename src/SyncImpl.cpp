@@ -129,31 +129,6 @@ void SyncImpl::filterTransactionsToSave(BlockInfo& bi) {
     }
 }
 
-void SyncImpl::saveSignBlockTransactionsToHeader(BlockInfo& bi) {
-    for (const TransactionInfo &tx: bi.txs) {
-        if (tx.isSignBlockTx) {
-            bi.header.blockSignatures.emplace_back(tx);
-        }
-    }
-}
-
-void SyncImpl::fillSignedTransactionsInBlock(BlockHeader& bh) const {
-    std::ifstream file;
-    std::string saveFileName;
-    for (TransactionInfo &tx: bh.blockSignatures) {
-        if (!tx.filePos.fileName.empty() && !tx.isInitialized) {
-            if (saveFileName != tx.filePos.fileName) {
-                closeFile(file);
-                openFile(file, tx.filePos.fileName);
-                saveFileName = tx.filePos.fileName;
-            }
-            const bool res = readOneTransactionInfo(file, tx.filePos.pos, tx, false);
-            CHECK(res, "Incorrect read transaction info");
-            CHECK(tx.isInitialized, "Incorrect read transaction info 2 " + tx.filePos.fileName + " " + std::to_string(tx.filePos.pos));
-        }
-    }
-}
-
 void SyncImpl::saveBlockToLeveldb(const BlockInfo &bi) {
     Batch batch;
     if (modules[MODULE_BLOCK]) {
@@ -333,7 +308,6 @@ void SyncImpl::synchronize(int countThreads) {
                     
                     filterTransactionsToSave(*prevBi);
                     saveTransactions(*prevBi, *prevDump, isSaveBlockToFiles);
-                    saveSignBlockTransactionsToHeader(*prevBi);
                     
                     const size_t currentBlockNum = blockchain.addBlock(prevBi->header);
                     CHECK(currentBlockNum != 0, "Incorrect block number");

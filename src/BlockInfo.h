@@ -213,9 +213,7 @@ struct BlockHeader {
     size_t endBlockPos = 0;
     
     std::optional<size_t> blockNumber;
-    
-    std::vector<TransactionInfo> blockSignatures;
-    
+
     std::vector<unsigned char> senderSign;  
     std::vector<unsigned char> senderPubkey;
     std::vector<unsigned char> senderAddress;
@@ -257,6 +255,8 @@ struct BlockInfo {
     TransactionStatistics txsStatistic;
     
     std::vector<TransactionInfo> txs;
+
+    std::vector<TransactionInfo> getBlockSignatures() const;
 };
 
 struct BlocksMetadata {
