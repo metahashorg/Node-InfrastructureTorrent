@@ -14,10 +14,11 @@ class Sync;
 
 class Server: public sniper::mhd::MHD {
 public:
-    Server(const torrent_node_lib::Sync &sync, int port, std::atomic<int> &countRunningThreads) 
+    Server(const torrent_node_lib::Sync &sync, int port, std::atomic<int> &countRunningThreads, const std::string &serverPrivKey)
         : sync(sync)
         , port(port)
         , countRunningThreads(countRunningThreads)
+        , serverPrivKey(serverPrivKey)
         , isStoped(false)
     {}
     
@@ -35,6 +36,8 @@ private:
 
     std::atomic<int> &countRunningThreads;
     
+    const std::string serverPrivKey;
+
     std::atomic<bool> isStoped;
         
     SmallStatistic smallRequestStatistics;

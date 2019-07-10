@@ -28,6 +28,8 @@ std::string genErrorResponse(const RequestId &requestId, int code, const std::st
 
 std::string genStatusResponse(const RequestId &requestId, const std::string &version, const std::string &gitHash);
 
+std::string genInfoResponse(const RequestId &requestId, const std::string &version, const std::string &privkey);
+
 std::string genStatisticResponse(const RequestId &requestId, size_t statistic, double proc, unsigned long long int memory, int connections);
 
 std::string genStatisticResponse(size_t statistic);

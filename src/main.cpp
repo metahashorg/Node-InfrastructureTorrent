@@ -48,9 +48,9 @@ void crash_handler(int sig) {
     exit(1);
 }
 
-static void serverThreadFunc(const Sync &sync, int port) {
+static void serverThreadFunc(const Sync &sync, int port, const std::string &privkey) {
     try {
-        Server server(sync, port, countRunningServerThreads);
+        Server server(sync, port, countRunningServerThreads, privkey);
         std::this_thread::sleep_for(1s); // Небольшая задержка сервера перед запуском
         server.start("./");
     } catch (const exception &e) {
@@ -253,7 +253,7 @@ int main (int argc, char *const *argv) {
         
         //LOGINFO << "Is virtual machine: " << sync.isVirtualMachine();
         
-        std::thread serverThread(serverThreadFunc, std::cref(sync), port);
+        std::thread serverThread(serverThreadFunc, std::cref(sync), port, signKey);
         serverThread.detach();
         
         //sync.addUsers({Address("0x0049704639387c1ae22283184e7bc52d38362ade0f977030e6"), Address("0x0034d209107371745c6f5634d6ed87199bac872c310091ca56")});
