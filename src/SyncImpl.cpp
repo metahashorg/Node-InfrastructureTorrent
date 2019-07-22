@@ -424,16 +424,6 @@ std::string SyncImpl::getBlockDump(const BlockHeader &bh, size_t fromByte, size_
     }
 }
 
-std::string SyncImpl::signTestString(const std::string &str, bool isHex) const {
-    CHECK(privateKey != nullptr, "Private key not set");
-    const std::string res = makeTestSign(str, *privateKey);
-    if (isHex) {
-        return toHex(res.begin(), res.end());
-    } else {
-        return res;
-    }
-}
-
 size_t SyncImpl::getKnownBlock() const {
     return knownLastBlock.load();
 }

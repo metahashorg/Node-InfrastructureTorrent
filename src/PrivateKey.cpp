@@ -103,22 +103,6 @@ BlockSignatureCheckResult checkSignatureBlock(const std::string &blockDump) {
     return result;
 }
 
-std::string makeTestSign(const std::string &str, const PrivateKey &privateKey) {
-    const std::vector<unsigned char> sign = privateKey.sign(str);
-    const std::vector<unsigned char> &pubkey = privateKey.public_key();
-    const std::string &address = privateKey.get_address();
-    
-    std::string res;
-    
-    res.reserve(8 + sign.size() + 8 + pubkey.size() + 8 + address.size() + 1);
-    
-    res += serializeStringBigEndian(std::string(sign.begin(), sign.end()));
-    res += serializeStringBigEndian(std::string(pubkey.begin(), pubkey.end()));
-    res += serializeStringBigEndian(address);
-    
-    return res;
-}
-
 std::string getAddress(const std::vector<unsigned char> &pubkey) {
     const std::string calculatedAddress = torrent_node_lib::get_address(pubkey);
     return calculatedAddress;

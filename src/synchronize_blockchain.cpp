@@ -57,10 +57,6 @@ const BlockChainReadInterface & Sync::getBlockchain() const {
     return impl->getBlockchain();
 }
 
-std::string Sync::signTestString(const std::string &str, bool isHex) const {
-    return impl->signTestString(str, isHex);
-}
-
 bool Sync::verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const {
     return impl->verifyTechnicalAddressSign(binary, signature, pubkey);
 }

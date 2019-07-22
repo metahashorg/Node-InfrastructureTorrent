@@ -59,8 +59,6 @@ public:
     size_t getKnownBlock() const;
 
     size_t getLastBlockDay() const;
-
-    std::string signTestString(const std::string &str, bool isHex) const;
     
     bool verifyTechnicalAddressSign(const std::string &binary, const std::vector<unsigned char> &signature, const std::vector<unsigned char> &pubkey) const;
 

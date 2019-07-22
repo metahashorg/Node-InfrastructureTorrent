@@ -48,8 +48,6 @@ std::string makeBlockSign(const std::string &blockDump, const PrivateKey &privat
 
 BlockSignatureCheckResult checkSignatureBlock(const std::string &blockDump);
 
-std::string makeTestSign(const std::string &str, const PrivateKey &privateKey);
-
 std::string makeTestResultSign(const std::string &str, const PrivateKey &privateKey);
 
 void checkSignatureTest(const std::string &text, const std::string &str);

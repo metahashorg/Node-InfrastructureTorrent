@@ -34,7 +34,6 @@ const static std::string GET_DUMP_BLOCK_BY_HASH = "get-dump-block-by-hash";
 const static std::string GET_DUMP_BLOCK_BY_NUMBER = "get-dump-block-by-number";
 const static std::string GET_DUMPS_BLOCKS_BY_HASH = "get-dumps-blocks-by-hash";
 const static std::string GET_DUMPS_BLOCKS_BY_NUMBER = "get-dumps-blocks-by-number";
-const static std::string SIGN_TEST_STRING = "sign-test-string";
 
 const static int HTTP_STATUS_OK = 200;
 const static int HTTP_STATUS_METHOD_NOT_ALLOWED = 405;
@@ -308,16 +307,6 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
     try {
         std::string jsonRequest;
         
-        if (url == "/" + SIGN_TEST_STRING) {
-            if (!mhd_req.post.empty()) {
-                mhd_resp.data = signTestString(mhd_req.post, false, requestId, sync);
-                mhd_resp.code = HTTP_STATUS_OK;
-            } else {
-                mhd_resp.code = HTTP_STATUS_BAD_REQUEST;
-            }
-            return true;
-        }
-        
         if (method == "POST") {
             if (!mhd_req.post.empty()) {
                 jsonRequest = mhd_req.post;
@@ -409,14 +398,6 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
             const size_t countBlocks = sync.getBlockchain().countBlocks();
             
             response = genCountBlockJson(requestId, countBlocks, isFormatJson, jsonVersion);
-        } else if (func == SIGN_TEST_STRING) {
-            CHECK_USER(doc.HasMember("params") && doc["params"].IsObject(), "params field not found");
-            const auto &jsonParams = doc["params"];
-            CHECK_USER(jsonParams.HasMember("data") && jsonParams["data"].IsString(), "data field not found");
-            const std::string &data = jsonParams["data"].GetString();
-            
-            const auto dataBin = fromHex(data);
-            response = signTestString(std::string(dataBin.begin(), dataBin.end()), true, requestId, sync);
         } else {
             throwUserErr("Incorrect func " + func);
         }
