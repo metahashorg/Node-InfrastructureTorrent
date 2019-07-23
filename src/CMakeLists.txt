@@ -93,6 +93,8 @@ set(LIBRARY_SOURCES
     utils/benchmarks.cpp
     utils/compress.cpp
     utils/SystemInfo.cpp
+
+    nslookup.cpp
 )
 
 set(PROJECT_MAIN
@@ -156,6 +158,8 @@ set(PROJECT_LIBS
     uriparser.a
 
     curl
+
+    resolv.a
 
     ${CMAKE_THREAD_LIBS_INIT}
 

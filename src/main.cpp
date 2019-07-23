@@ -31,6 +31,8 @@
 #include "P2P/P2P_Graph.h"
 #include "P2P/P2P_Simple.h"
 
+#include "nslookup.h"
+
 #include "Modules.h"
 
 using namespace common;
@@ -230,9 +232,11 @@ int main (int argc, char *const *argv) {
             }
             p2p = std::make_unique<P2P_Ips>(serversStr, countConnections);
         } else {
-            const std::string &fileName = allSettings["servers"];
-            const std::vector<std::pair<std::string, std::string>> serversGraph = readServers(fileName, otherPortTorrent);
-            p2p = std::make_unique<P2P_Graph>(serversGraph, myIp, countConnections);
+            const std::string &serverName = allSettings["servers"];
+            const NsResult bestIp = getBestIp(serverName);
+            std::vector<std::string> serversStr{bestIp.server};
+
+            p2p = std::make_unique<P2P_Ips>(serversStr, countConnections);
         }
 
         Sync sync(
