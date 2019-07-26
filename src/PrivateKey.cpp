@@ -32,14 +32,15 @@ PrivateKey::PrivateKey(const std::vector<unsigned char>& key, const std::string 
     , pubk(65)
     , address(address)
 {
-    secp256k1_pubkey pubkey;
-    if (secp256k1_ec_pubkey_create(getCtx(), &pubkey, (const uint8_t*)privateKey.data() + 7) == 1) {
+    try {
+        secp256k1_pubkey pubkey;
         size_t size = pubk.size();
+        CHECK(secp256k1_ec_pubkey_create(getCtx(), &pubkey, (const uint8_t*)privateKey.data() + 7) == 1, "Incorrect private key");
         CHECK(secp256k1_ec_pubkey_serialize(getCtx(), pubk.data(), &size, &pubkey, SECP256K1_EC_UNCOMPRESSED) == 1, "Incorrect pubkey");
         const std::string calculatedAddress = torrent_node_lib::get_address(pubk);
         CHECK(calculatedAddress == toLower(address), "Incorrect private key or address");
         isSecp = true;
-    } else {
+    } catch (const exception &) {
         std::string pubkey;
         CRYPTO_generate_public(toHex(privateKey), pubkey, "");
         pubk = fromHex(pubkey);

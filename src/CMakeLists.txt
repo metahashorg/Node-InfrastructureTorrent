@@ -14,7 +14,7 @@ include(common_utils)
 
 add_definitions(-DSNIPER_LOG_TRACE -DSNIPER_LOG_DEBUG)
 
-add_definitions(-DVERSION="0.84")
+add_definitions(-DVERSION="0.85")
 
 set(COMMON_SOURCES
     ${COMMON_UTILS_SOURCES_WITHOUT_GITSHA}
