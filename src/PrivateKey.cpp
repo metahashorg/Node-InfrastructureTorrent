@@ -10,6 +10,8 @@
 #include "stringUtils.h"
 #include "utils/serialize.h"
 #include "convertStrings.h"
+#include "utils/crypto.h"
+#include "log.h"
 
 #include "BlockchainUtils.h"
 
@@ -26,16 +28,27 @@ static const secp256k1_context* getCtx() {
 }
     
 PrivateKey::PrivateKey(const std::vector<unsigned char>& key, const std::string &address) 
-    : privateKey(key.begin() + 7, key.end())
+    : privateKey(key)
     , pubk(65)
     , address(address)
 {
     secp256k1_pubkey pubkey;
-    CHECK(secp256k1_ec_pubkey_create(getCtx(), &pubkey, (const uint8_t*)privateKey.data()) == 1, "Incorrect private key");
-    size_t size = pubk.size();
-    CHECK(secp256k1_ec_pubkey_serialize(getCtx(), pubk.data(), &size, &pubkey, SECP256K1_EC_UNCOMPRESSED) == 1, "Incorrect pubkey");
-    const std::string calculatedAddress = torrent_node_lib::get_address(pubk);
-    CHECK(calculatedAddress == toLower(address), "Incorrect private key or address");
+    if (secp256k1_ec_pubkey_create(getCtx(), &pubkey, (const uint8_t*)privateKey.data() + 7) == 1) {
+        size_t size = pubk.size();
+        CHECK(secp256k1_ec_pubkey_serialize(getCtx(), pubk.data(), &size, &pubkey, SECP256K1_EC_UNCOMPRESSED) == 1, "Incorrect pubkey");
+        const std::string calculatedAddress = torrent_node_lib::get_address(pubk);
+        CHECK(calculatedAddress == toLower(address), "Incorrect private key or address");
+        isSecp = true;
+    } else {
+        std::string pubkey;
+        CRYPTO_generate_public(toHex(privateKey), pubkey, "");
+        pubk = fromHex(pubkey);
+        std::string calculatedAddress;
+        CRYPTO_generate_address(pubkey, calculatedAddress);
+        calculatedAddress = "0x" + calculatedAddress;
+        CHECK(calculatedAddress == toLower(address), "Incorrect private key or address");
+        isSecp = false;
+    }
 }
     
 const std::vector<unsigned char>& PrivateKey::public_key() const {
@@ -47,11 +60,23 @@ const std::string& PrivateKey::get_address() const {
 }
 
 std::vector<unsigned char> PrivateKey::sign(const std::string& data) const {
-    return sign((const unsigned char*)data.data(), data.size());
+    if (isSecp) {
+        return sign((const unsigned char*)data.data(), data.size());
+    } else {
+        std::vector<unsigned char> sign;
+        CRYPTO_sign_text(sign, toHex(privateKey), data);
+        return sign;
+    }
 }
 
 std::vector<unsigned char> PrivateKey::sign(const std::vector<unsigned char>& data) const {
-    return sign(data.data(), data.size());
+    if (isSecp) {
+        return sign(data.data(), data.size());
+    } else {
+        std::vector<unsigned char> sign;
+        CRYPTO_sign_data(sign, toHex(privateKey), data);
+        return sign;
+    }
 }
 
 std::vector<unsigned char> PrivateKey::sign(const unsigned char *data, size_t size) const {
@@ -59,7 +84,7 @@ std::vector<unsigned char> PrivateKey::sign(const unsigned char *data, size_t si
     SHA256(data, size, hash.data());
     
     secp256k1_ecdsa_signature signature;
-    CHECK(secp256k1_ecdsa_sign(getCtx(), &signature, hash.data(), privateKey.data(), nullptr, nullptr) == 1, "Dont create signature");
+    CHECK(secp256k1_ecdsa_sign(getCtx(), &signature, hash.data(), privateKey.data() + 7, nullptr, nullptr) == 1, "Dont create signature");
     std::vector<unsigned char> result(100);
     size_t lenResult = result.size();
     CHECK(secp256k1_ecdsa_signature_serialize_der(getCtx(), result.data(), &lenResult, &signature) == 1, "Dont create signature");
@@ -97,10 +122,15 @@ BlockSignatureCheckResult checkSignatureBlock(const std::string &blockDump) {
     result.address = deserializeStringBigEndian(blockDump, from);
     
     CHECK(crypto_check_sign_data(std::vector<char>(result.sign.begin(), result.sign.end()), std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()), (const unsigned char*)result.block.data(), result.block.size()), "Not validate");
-    const std::string calculatedAddress = makeAddressFromSecpKey(std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()));
-    CHECK(calculatedAddress == result.address, "Not validate");
-    
-    return result;
+    try {
+        const std::string calculatedAddress = makeAddressFromSecpKey(std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()));
+        CHECK(calculatedAddress == result.address, "Not validate");
+        return result;
+    } catch (const exception &e) {
+        const std::string calculatedAddress = get_address(std::vector<unsigned char>(result.pubkey.begin(), result.pubkey.end()));
+        CHECK(calculatedAddress == result.address, "Not validate");
+        return result;
+    }
 }
 
 std::string getAddress(const std::vector<unsigned char> &pubkey) {

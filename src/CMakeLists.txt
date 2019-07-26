@@ -14,7 +14,7 @@ include(common_utils)
 
 add_definitions(-DSNIPER_LOG_TRACE -DSNIPER_LOG_DEBUG)
 
-add_definitions(-DVERSION="0.83")
+add_definitions(-DVERSION="0.84")
 
 set(COMMON_SOURCES
     ${COMMON_UTILS_SOURCES_WITHOUT_GITSHA}
@@ -93,6 +93,7 @@ set(LIBRARY_SOURCES
     utils/benchmarks.cpp
     utils/compress.cpp
     utils/SystemInfo.cpp
+    utils/crypto.cpp
 
     nslookup.cpp
 )

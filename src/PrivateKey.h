@@ -20,7 +20,7 @@ public:
     const std::string& get_address() const;
     
 private:
-    
+
     std::vector<unsigned char> sign(const unsigned char *data, size_t size) const;
     
 private:
@@ -31,6 +31,8 @@ private:
     
     std::string address;
     
+    bool isSecp = false;
+
 };
     
 struct BlockSignatureCheckResult {
