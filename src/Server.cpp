@@ -409,7 +409,7 @@ bool Server::run(int thread_number, Request& mhd_req, Response& mhd_resp) {
         mhd_resp.data = genErrorResponse(requestId, -32603, e);
         mhd_resp.code = HTTP_STATUS_INTERNAL_SERVER_ERROR;
     } catch (const UserException &e) {
-        LOGERR << e.exception;
+        LOGDEBUG << e.exception;
         mhd_resp.data = genErrorResponse(requestId, -32602, e.exception + ". Url: " + url);
         mhd_resp.code = HTTP_STATUS_BAD_REQUEST;
     } catch (const std::exception &e) {
