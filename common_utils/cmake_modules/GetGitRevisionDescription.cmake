@@ -111,6 +111,7 @@ function(git_describe _var)
         #message(STATUS "Arguments to execute_process: ${ARGN}")
 
         execute_process(COMMAND
+                "${GIT_EXECUTABLE}" log -1 --format=%aD
                 "${GIT_EXECUTABLE}"
                 describe
                 ${hash}
@@ -133,6 +134,18 @@ endfunction()
 function(git_get_exact_tag _var)
         git_describe(out --exact-match ${ARGN})
         set(${_var} "${out}" PARENT_SCOPE)
+endfunction()
+
+function(git_get_commit_datetime _var)
+	execute_process(COMMAND
+	  	"${GIT_EXECUTABLE}" log -1 --format=%ad
+	  	WORKING_DIRECTORY
+		"${CMAKE_SOURCE_DIR}"
+	  	OUTPUT_VARIABLE 
+		out
+	  	ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
 
 function(git_local_changes _var)

@@ -121,7 +121,7 @@ int main (int argc, char *const *argv) {
     
     configureLog("./", true, true, false, false);
     
-    LOGINFO << "Repository version " << g_GIT_SHA1;
+    LOGINFO << "Repository version " << g_GIT_SHA1 << " " << VERSION << " " << g_GIT_DATE;
     LOGINFO << "Is local changes " << g_GIT_IS_LOCAL_CHANGES;
     LOGINFO << "Branch " << g_GIT_REFSPEC;
    
