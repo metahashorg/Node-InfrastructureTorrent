@@ -242,17 +242,10 @@ struct BlockTimes {
     time_point timeEndSaveBlock;
 };
 
-struct TransactionStatistics {
-    size_t countTransferTxs = 0;
-    size_t countInitTxs = 0;
-};
-
 struct BlockInfo {
     BlockHeader header;
     
     BlockTimes times;
-    
-    TransactionStatistics txsStatistic;
     
     std::vector<TransactionInfo> txs;
 
