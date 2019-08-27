@@ -1,6 +1,7 @@
 #include "P2P.h"
 
 #include "check.h"
+#include "log.h"
 
 #include "parallel_for.h"
 #include "BlockedQueue.h"

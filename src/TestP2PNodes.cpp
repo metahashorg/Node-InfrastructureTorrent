@@ -2,6 +2,7 @@
 
 #include <random>
 #include <iomanip>
+#include <fstream>
 
 #include "P2P/P2P.h"
 #include "Workers/WorkerNodeTest.h"
