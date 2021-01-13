@@ -299,31 +299,88 @@ bool crypto_check_sign_data2(
     }
 }
 
+bool CheckBufferSignature(EVP_PKEY* publicKey, const std::vector<char>& data, ECDSA_SIG* signature) {
+    size_t bufsize = data.size();
+    const char* buff = data.data();
+    
+    EVP_MD_CTX* mdctx;
+    static const EVP_MD* md = EVP_sha256();
+    unsigned char md_value[EVP_MAX_MD_SIZE];
+    unsigned int md_len;
+    
+    md = EVP_sha256();
+    mdctx = EVP_MD_CTX_create();
+    EVP_DigestInit_ex(mdctx, md, nullptr);
+    EVP_DigestUpdate(mdctx, buff, bufsize);
+    EVP_DigestFinal_ex(mdctx, md_value, &md_len);
+    EVP_MD_CTX_destroy(mdctx);
+    
+    EC_KEY* ec_key = EVP_PKEY_get1_EC_KEY(publicKey);
+    if (ECDSA_do_verify(md_value, md_len, signature, ec_key) == 1) {
+        EC_KEY_free(ec_key);
+        return true;
+    }
+    EC_KEY_free(ec_key);
+    return false;
+}
+
+template <typename SignContainer>
+ECDSA_SIG* ReadSignature(const SignContainer& binsign) {
+    const auto* data = reinterpret_cast<const unsigned char*>(binsign.data());
+    
+    ECDSA_SIG* signature = d2i_ECDSA_SIG(nullptr, &data, binsign.size());
+    return signature;
+}
+
+template <typename PubKContainer>
+EVP_PKEY* ReadPublicKey(const PubKContainer& binpubk) {
+    const auto* data = reinterpret_cast<const unsigned char*>(binpubk.data());
+    
+    EVP_PKEY* key = d2i_PUBKEY(nullptr, &data, binpubk.size());
+    return key;
+}
+
+template <typename PrivKContainer>
+EVP_PKEY* ReadPrivateKey(const PrivKContainer& binprivk) {
+    const auto* data = reinterpret_cast<const unsigned char*>(binprivk.data());
+    
+    EVP_PKEY* key = d2i_AutoPrivateKey(nullptr, &data, binprivk.size());
+    return key;
+}
+
+template <typename DataContainer, typename SignContainer, typename PubKContainer>
+bool check_sign(const DataContainer& data, const SignContainer& sign, const PubKContainer& pubk) {
+    EVP_PKEY* pubkey = ReadPublicKey(pubk);
+    if (!pubkey) {
+        return false;
+    }
+    ECDSA_SIG* signature = ReadSignature(sign);
+    if (!signature) {
+        EVP_PKEY_free(pubkey);
+        return false;
+    }
+    
+    std::vector<char> data_as_vector;
+    data_as_vector.insert(data_as_vector.end(), data.begin(), data.end());
+    
+    if (CheckBufferSignature(pubkey, data_as_vector, signature)) {
+        EVP_PKEY_free(pubkey);
+        ECDSA_SIG_free(signature);
+        return true;
+    }
+    
+    EVP_PKEY_free(pubkey);
+    ECDSA_SIG_free(signature);
+    return false;
+}
+
 bool crypto_check_sign_data(
     const std::vector<char>& sign, 
     const std::vector<unsigned char>& public_key, 
     const unsigned char *data,
     size_t data_size)
 {
-    secp256k1_pubkey pubkeySecp;
-    if (secp256k1_ec_pubkey_parse(getCtx(), &pubkeySecp, public_key.data() + public_key.size() - 65, 65) != 1) {
-        return crypto_check_sign_data2(sign, public_key, data, data_size);
-    }
-    
-    secp256k1_ecdsa_signature signSecp;
-    CHECK(secp256k1_ecdsa_signature_parse_der(getCtx(), &signSecp, (const unsigned char*)sign.data(), sign.size()) == 1, "Incorrect sign key");
-    secp256k1_ecdsa_signature sig_norm;
-    secp256k1_ecdsa_signature_normalize(getCtx(), &sig_norm, &signSecp);
-    
-    std::array<unsigned char, SHA256_DIGEST_LENGTH> hash;
-    SHA256(data, data_size, hash.data());
-        
-    const int result = secp256k1_ecdsa_verify(getCtx(), &sig_norm, hash.data(), &pubkeySecp);
-    if (result == 1) {
-        return true;
-    } else {
-        return false;
-    }
+    return check_sign(std::vector(data, data + data_size), sign, public_key);
 }
 
 void initBlockchainUtilsImpl() {
