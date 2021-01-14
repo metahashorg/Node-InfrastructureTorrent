@@ -67,7 +67,11 @@ cd libmhsupport/build
 ./build.sh
 sudo make install
 ```
-6. Build Torrent Node
+6. Submodule update
+```shell
+git submodule update --init
+```
+7. Build Torrent Node
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/Node-InfrastructureTorrent torrent_node
