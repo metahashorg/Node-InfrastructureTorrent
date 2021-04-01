@@ -1,6 +1,6 @@
-# MetaHash torrent node
+# MetaHash InfrastructureTorrent node
 
-This repository contains the torrent node source code written in C++. There are two internal libraries: [libmicrohttpd2](https://github.com/metahashorg/libmicrohttpd2) and [libmhsupport](https://github.com/metahashorg/libmhsupport) used in this code. 
+This repository contains the InfrastructureTorrent node source code written in C++. There are two internal libraries: [libmicrohttpd2](https://github.com/metahashorg/libmicrohttpd2) and [libmhsupport](https://github.com/metahashorg/libmhsupport) used in this code. 
 
 **Pre-built binary for ubuntu 18 available here: [releases](https://github.com/metahashorg/Node-InfrastructureTorrent/releases).**
 
