@@ -2,7 +2,7 @@
 
 This repository contains the InfrastructureTorrent node source code written in C++. There are two internal libraries: [libmicrohttpd2](https://github.com/metahashorg/libmicrohttpd2) and [libmhsupport](https://github.com/metahashorg/libmhsupport) used in this code. 
 
-**Pre-built binary for ubuntu 18 available here: [releases](https://github.com/metahashorg/Node-InfrastructureTorrent/releases).**
+**Pre-built binary for Ubuntu 18 (20 is also suitable) available here: [releases](https://github.com/metahashorg/Node-InfrastructureTorrent/releases).**
 
 ## Requirements
 ```shell
@@ -13,7 +13,7 @@ libevent 2.1.8
 
 ## Build
 
-Please follow these steps to build and run Torrent on Ubuntu 14.04 x64:
+Please follow these steps to build and run Torrent on Ubuntu:
 1. Preparation
 ```shell
 
@@ -21,7 +21,7 @@ sudo apt install software-properties-common
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt update
 
-sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt11-dev libgnutls28-dev liburiparser-dev libboost-dev libre2-dev
+sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt20-dev libgnutls28-dev liburiparser-dev libboost-dev libre2-dev
     
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 sudo update-alternatives --config gcc
