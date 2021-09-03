@@ -13,6 +13,8 @@ libevent 2.1.8
 
 ## Build
 
+Please be informed that you can build torrent in /tmp (temporary directory) as described below or you can build it in /opt directory.
+
 Please follow these steps to build and run Torrent on Ubuntu:
 1. Preparation
 ```shell
