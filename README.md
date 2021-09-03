@@ -115,3 +115,14 @@ RUN script as follows:
 ```shell
 ./torrent.sh status
 ```
+
+## Run torrent
+
+To run torrent, you have to add the file containing your private key to the folder containing torrent (`/opt/torrent`). The file’s name must be as follows: `yourkey.raw.prv`. Сlick [here](https://metahash.readme.io/docs/server-setup-faq#section-where-to-get-the-private-keys-proxy_key) for information about where to get the private key. 
+
+Example: `0x007ff2d508be12392be5a381ca07b55c8fd02d09192a9b5cf4.raw.prv`
+
+Besides, you have to configure your config file (`/opt/torrent/config.conf`). To do it, add the row with the name of your file containing private key or, if the row `sign_key = ...` already exists, replace the private key with your key in it.
+
+Example: `sign_key = "0x007ff2d508be12392be5a381ca07b55c8fd02d09192a9b5cf4"`.
+
