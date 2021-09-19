@@ -23,9 +23,9 @@ sudo apt install software-properties-common
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt update
 
-sudo apt install gcc-8 g++-8 liburiparser-dev libssl-dev libevent-dev git automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt20-dev libgnutls28-dev liburiparser-dev libboost-dev libre2-dev
-    
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+sudo apt install -y libgoogle-perftools4 libgmp10 liburiparser1 libcurl4 gcc g++ liburiparser-dev libssl-dev libevent-dev git automake libtool make cmake libcurl4-openssl-dev libcrypto++-dev libgnutls28-dev libgcrypt20-dev libgoogle-perftools-dev g++-8 gcc-8 cpp-8 g++-8 gcc-8 gcc-8-locales g++-8-multilib gcc-8-doc gcc-8-multilib libstdc++-8-doc git curl wget automake libtool texinfo make libgmp-dev libcurl4-openssl-dev libgcrypt11-dev libgnutls28-dev libboost-dev libre2-dev libgoogle-perftools-dev libcurl4 libgoogle-perftools4 liburiparser1
+
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
 sudo update-alternatives --config gcc
 ```
 2. Get and compile latest cmake
@@ -39,29 +39,19 @@ cd cmake-3.13.0
 make -j$(nproc)
 sudo make install 
 ```
-3. Get and compile libevent
-```shell
-cd /tmp
-wget https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz
-tar zxfv libevent-2.1.8-stable.tar.gz
-cd libevent-2.1.8-stable
-./configure
-make -j$(nproc)
-sudo make install
-```
-4. Get and compile libmicrohttpd2
+3. Get and compile libmicrohttpd2
 
 Please note: you must use this libmicrohttpd2 library, because the original libmicrohttpd library has no all functions available which are necessary for running Torrent.
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/libmicrohttpd2
-cd libmicrohttpd2
+cd /libmicrohttpd2
 ./bootstrap
 ./configure
-make -j$(nproc)
+make -j24
 sudo make install
 ```
-5. Get and compile libmhsupport
+4. Get and compile libmhsupport
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/libmhsupport
@@ -69,16 +59,14 @@ cd libmhsupport/build
 ./build.sh
 sudo make install
 ```
-6. Submodule update
-```shell
-git submodule update --init
-```
-7. Build Torrent Node
+5. Submodule update and Build Torrent Node
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/Node-InfrastructureTorrent torrent_node
 cd torrent_node/build
-./build.sh
+git submodule update --init
+cmake ..
+make
 ```
 
 ## Update torrent to recent version
