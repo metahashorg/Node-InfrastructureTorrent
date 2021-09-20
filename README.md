@@ -45,7 +45,7 @@ Please note: you must use this libmicrohttpd2 library, because the original libm
 ```shell
 cd /tmp
 git clone https://github.com/metahashorg/libmicrohttpd2
-cd /libmicrohttpd2
+cd libmicrohttpd2
 ./bootstrap
 ./configure
 make -j24
